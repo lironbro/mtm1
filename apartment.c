@@ -15,8 +15,10 @@
  * I'm sure you'll handle this
  * try to do it early on, this'll save us a lot of headaches
  *
- * Yours,
+ * Yours truly,
  * Liron
+ *
+ * P.S. you forgot enum bool Bool
  */
 
 #include <stdio.h>
@@ -42,11 +44,18 @@ ApartmenmtResult apartmentIsSameRoom(Apartment apartment, int row1, int col1,
 
 int apartmentTotalArea(Apartment apartment);
 
+ApartmenmtResult apartmentRoomArea(Apartment apartment, int row, int col,
+			int* outArea);
+
 bool apartmentIsIdentical(Apartment apartment1, Apartment apartment2);
+
+int apartmentGetPrice(Apartment apartment);
 
 Apartment apartmentCopy(Apartment apartment);
 
 void apartmentDestroy(Apartment apartment);
+
+
 
 
 Apartment apartmentCreate(SquareType** squares, int length, int width, int price)
@@ -83,18 +92,18 @@ void checkPath(Apartment apartment, int currentRow, int currentCol, // צריך לבדו
 	}
 	apartment.squares[currentRow][currentCol] = WALL;
 
-	if(currentRow+1<apartment.length &&
+	if(currentRow+1 < apartment.length &&
 			apartment.squares[currentRow+1][currentCol] == EMPTY)
 		checkPath(apartment, currentRow+1, currentCol, destinationRow, destinationCol, outResult);
 
-	if(currentRow>= 0 && apartment.squares[currentRow+1][currentCol] == EMPTY)
+	if(currentRow-1 >= 0 && apartment.squares[currentRow-1][currentCol] == EMPTY)
 		checkPath(apartment, currentRow-1, currentCol, destinationRow, destinationCol, outResult);
 
-	if(currentCol+1<apartment.width &&
+	if(currentCol+1 < apartment.width &&
 			apartment.squares[currentRow][currentCol+1] == EMPTY)
 		checkPath(apartment, currentRow+1, currentCol, destinationRow, destinationCol, outResult);
 
-	if(currentRow-1>=0 && apartment.squares[currentRow][currentCol-1] == EMPTY)
+	if(currentRow-1 >= 0 && apartment.squares[currentRow][currentCol-1] == EMPTY)
 		checkPath(apartment, currentRow-1, currentCol, destinationRow, destinationCol, outResult);
 
 	apartment.squares[currentRow][currentCol] = EMPTY;
@@ -110,9 +119,26 @@ int apartmentTotalArea(Apartment apartment)
 	return empties;
 }
 
+ApartmenmtResult apartmentRoomArea(Apartment apartment, int row, int col,
+			int* outArea)
+{	// אפשר להתחיל בקורדינטה ולהתפשט על כל השטח של החדר
+	int squares = 0;
+	for(int i=0; i<apartment.length; i++)
+	{
+		for(int j=0; j<apartment.width; j++)
+		{
+			if(i!=row || j!=col)
+			{
+				bool sameRoom = false;
+				apartmentIsSameRoom(apartment, row, col, i, j)
+			}
+		}
+	}
+}
+
 bool apartmentIsIdentical(Apartment apartment1, Apartment apartment2)
 {
-	if(apartment1 == NULL && apartment2 == NULL)  // לא יודע אם הפקודה הזאת חוקית, צריך לבדוק
+	if(apartment1 == NULL && apartment2 == NULL)
 		return true;
 	if(apartment1 == NULL || apartment2 == NULL)
 		return false;
@@ -125,6 +151,12 @@ bool apartmentIsIdentical(Apartment apartment1, Apartment apartment2)
 				return false;
 	return true;
 }
+
+int apartmentGetPrice(Apartment apartment)
+{
+	return apartment.price;
+}
+
 
 Apartment apartmentCopy(Apartment apartment)
 {
