@@ -24,36 +24,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include "apartment.h"
 
-typedef enum {EMPTY, WALL} SquareType;
-typedef enum {APARTMENT_NULL_ARG, APARTMENT_OUT_OF_MEM, APARTMENT_SUCCESS,
-				APARTMENT_OUT_OF_BOUNDS, APARTMENT_NO_ROOM} ApartmenmtResult;
-typedef struct apartment_t Apartment;
 
-struct apartment_t{
-	SquareType** squares;
-	int width;
-	int length;
-	int price;
-};
 
-Apartment apartmentCreate(SquareType** squares, int length, int width, int price);
-
-ApartmenmtResult apartmentIsSameRoom(Apartment apartment, int row1, int col1,
-		 int row2, int col2, bool* outResult);
-
-int apartmentTotalArea(Apartment apartment);
-
-ApartmenmtResult apartmentRoomArea(Apartment apartment, int row, int col,
-			int* outArea);
-
-bool apartmentIsIdentical(Apartment apartment1, Apartment apartment2);
-
-int apartmentGetPrice(Apartment apartment);
-
-Apartment apartmentCopy(Apartment apartment);
-
-void apartmentDestroy(Apartment apartment);
 
 
 
@@ -66,11 +40,13 @@ Apartment apartmentCreate(SquareType** squares, int length, int width, int price
 	apt.length = length;
 	apt.width = width;
 	apt.price = price;
-	apt.squares = squares;
+	apt.squares = malloc(length*sizeof(*SquareType));
+	for(int i=0; i<length; i++) 	// בהשראת איתמר
+		squares+i = malloc(width*sizeof(SquareType));	// לא יודע אם זה יעבוד
 	return apt;
 }
 
-ApartmenmtResult apartmentIsSameRoom(Apartment apartment, int row1, int col1,
+ApartmentResult apartmentIsSameRoom(Apartment apartment, int row1, int col1,
 		 int row2, int col2, bool* outResult)
 {
 	if(row1>=apartment.width || col1>=apartment.length
@@ -119,7 +95,7 @@ int apartmentTotalArea(Apartment apartment)
 	return empties;
 }
 
-ApartmenmtResult apartmentRoomArea(Apartment apartment, int row, int col,
+ApartmentResult apartmentRoomArea(Apartment apartment, int row, int col,
 			int* outArea)
 {	// אפשר להתחיל בקורדינטה ולהתפשט על כל השטח של החדר
 	int squares = 0;
@@ -130,10 +106,11 @@ ApartmenmtResult apartmentRoomArea(Apartment apartment, int row, int col,
 			if(i!=row || j!=col)
 			{
 				bool sameRoom = false;
-				apartmentIsSameRoom(apartment, row, col, i, j)
+				apartmentIsSameRoom(apartment, row, col, i, j);
 			}
 		}
 	}
+	return APARTMENT_SUCCESS;
 }
 
 bool apartmentIsIdentical(Apartment apartment1, Apartment apartment2)
