@@ -30,20 +30,35 @@
 void checkPath(Apartment apartment, int currentRow,
 		int currentCol, int destinationRow, int destinationCol, bool* outResult);
 
-
+void print(Apartment apartment);
 
 
 Apartment apartmentCreate(SquareType** squares, int length, int width, int price)
 {
-	if(*squares == NULL || length<= 0 || width<= 0 || price< 0)
+	if(squares == NULL || length <= 0 || width <= 0 || price < 0)
 		return NULL;
-	Apartment apartment;
+	struct apartment_t apartmentT;
+	Apartment apartment = &apartmentT;
 	apartment->length = length;
 	apartment->width = width;
 	apartment->price = price;
-	apartment->squares = malloc(length*sizeof(SquareType));  // איך אני עושה מערך של סקוואר טייפ?
-	for(int i=0; i<length; i++) 	// בהשראת איתמר
-		apartment->squares[i] = malloc(width*sizeof(SquareType));	// לא יודע אם זה יעבוד
+	apartment->squares = malloc(length*sizeof(SquareType*));
+	if(apartment->squares == NULL)
+		return NULL;
+	for(int i=0; i<length; i++)
+	{
+		apartment->squares[i] = malloc(width*sizeof(SquareType));
+		if(apartment->squares[i]==NULL)
+		{
+			apartmentDestroy(apartment);
+			return NULL;
+		}
+		for(int j=0; j<width; j++)
+		{
+			apartment->squares[i][j] = squares[i][j];	// המפה של הדירה נקלטת בסדר, אולי יש בעיה בשמירה
+		}
+	}
+	printf("length: %d, width: %d, price: %d\n", apartment->length, apartment->width, apartment->price);
 	return apartment;
 }
 
@@ -161,13 +176,32 @@ void apartmentDestroy(Apartment apartment)
 {
 	if(apartment == NULL)
 		return;
-	free(apartment->length);
-	free(apartment->width);
-	free(apartment->price);
+	printf("destroy test 2\n");	// זה גם דורש שאשיר את ההדפסה הזאת בשביל ההדפסות הבאות, לא יודע למה
+	for(int i=0; i<apartment->length; i++)
+	{
+		free(apartment->squares[i]);
+	}
 	free(apartment->squares);
+	apartment->squares = NULL;
+	printf("destroy test 4\n");
+	free(apartment);	// זה לא מצליח לעבור את השורה הזאת ולא ברור למה
+	printf("destroy test 5\n");
 }
 
-
+void print(Apartment apartment)
+{
+	printf("length: %d, width: %d, price: %d\n", apartment->length, apartment->width, apartment->price);
+		for(int i=0; i<apartment->length; i++)
+		{
+			for(int j=0; j<apartment->width; j++)
+			{
+				if(apartment->squares[i][j]==WALL)
+					printf("W ");
+				else printf("E ");
+			}
+			printf("\n");
+		}
+}
 
 
 
