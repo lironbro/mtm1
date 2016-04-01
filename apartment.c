@@ -24,41 +24,31 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <math.h>
 #include "apartment.h"
 
 
 void checkPath(Apartment apartment, int currentRow,
 		int currentCol, int destinationRow, int destinationCol, bool* outResult);
 
-void print(Apartment apartment);
 
+int main()
+{
+		printf("hello");
+	return 0;
+}
 
 Apartment apartmentCreate(SquareType** squares, int length, int width, int price)
 {
-	if(squares == NULL || length <= 0 || width <= 0 || price < 0)
+	if(*squares == NULL || length<= 0 || width<= 0 || price< 0)
 		return NULL;
-	struct apartment_t apartmentT;
-	Apartment apartment = &apartmentT;
+	Apartment apartment;
 	apartment->length = length;
 	apartment->width = width;
 	apartment->price = price;
-	apartment->squares = malloc(length*sizeof(SquareType*));
-	if(apartment->squares == NULL)
-		return NULL;
-	for(int i=0; i<length; i++)
-	{
-		apartment->squares[i] = malloc(width*sizeof(SquareType));
-		if(apartment->squares[i]==NULL)
-		{
-			apartmentDestroy(apartment);
-			return NULL;
-		}
-		for(int j=0; j<width; j++)
-		{
-			apartment->squares[i][j] = squares[i][j];	// המפה של הדירה נקלטת בסדר, אולי יש בעיה בשמירה
-		}
-	}
-	printf("length: %d, width: %d, price: %d\n", apartment->length, apartment->width, apartment->price);
+	apartment->squares = malloc(length*sizeof(SquareType*));  // איך אני עושה מערך של סקוואר טייפ?
+	for(int i=0; i<length; i++) 	// בהשראת איתמר
+		apartment->squares[i] = malloc(width*sizeof(SquareType));	// לא יודע אם זה יעבוד
 	return apartment;
 }
 
@@ -131,6 +121,78 @@ ApartmentResult apartmentRoomArea(Apartment apartment, int row, int col,
 }
 */
 
+ApartmentResult apartmentSplit(Apartment apartment, bool splitByRow,
+                                int index, Apartment* first, Apartment* second)
+{
+    if(index >= (apartment->length) || index >= (apartment->width))
+        return APARTMENT_OUT_OF_BOUNDS;
+    if(splitByRow) {
+        for( int i=0 ; i < (apartment->width) ; i++ ) {
+        	if(apartment->squares[i][index] == EMPTY)
+                return APARTMENT_BAD_SPLIT;
+        }
+    }
+    else
+        for( int i=0; i < apartment->length; i++)
+            if(apartment->squares[index][i]==EMPTY)
+                return APARTMENT_BAD_SPLIT;
+    if(splitByRow) {
+    	first = apartmentCreate(, index, apartment->width,);
+    	second = apartmentCreate(, index, apartment->width,);
+    	return APARTMENT_SUCCESS;
+    }
+    first = apartmentCreate(, index, apartment->width,);
+    second = apartmentCreate(, index, apartment->width,);
+    return APARTMENT_SUCCESS;
+    // Continue.
+}
+
+int apartmentNumOfRooms(Apartment apartment)
+{
+    // Continue.
+}
+
+ApartmentResult apartmentGetSquare(Apartment apartment, int row, int col, SquareType* OutValue)
+{
+    if(apartment == NULL)
+        return APARTMENT_NULL_ARG;
+	if(row >= apartment->width || col >= apartment->length)
+        return APARTMENT_OUT_OF_BOUNDS;
+    *OutValue = apartment->squares[row][col];
+    return APARTMENT_SUCCESS;
+}
+
+ApartmentResult apartmentSetSquare(Apartment apartment, int row, int col,
+                                    SquareType value)
+{
+    if(row >= apartment->width || col >= apartment->length)
+        return APARTMENT_OUT_OF_BOUNDS;
+    if(apartment->squares[row][col] == value)
+        return APARTMENT_OLD_VALUE;
+    apartment->squares[row][col]=value;
+    return APARTMENT_SUCCESS;
+}
+
+ApartmentResult apartmentChangePrice(Apartment apartment, int percent)
+{
+	if(percent < -100)
+		return APARTMENT_PRICE_NOT_IN_RANGE;
+	double price = apartmentGetPrice(apartment);
+	int diff = math.abs(percent/100*price);
+	diff = (percent<0) ? -diff : diff;
+    apartment->price=price+diff;
+    return APARTMENT_SUCCESS
+}
+
+int apartmentGetLength(Apartment apartment)
+{
+	return apartment->length;
+}
+
+int apartmentGetWidth(Apartment apartment)
+{
+	return apartment->width;
+}
 
 bool apartmentIsIdentical(Apartment apartment1, Apartment apartment2)
 {
@@ -176,32 +238,13 @@ void apartmentDestroy(Apartment apartment)
 {
 	if(apartment == NULL)
 		return;
-	printf("destroy test 2\n");	// זה גם דורש שאשיר את ההדפסה הזאת בשביל ההדפסות הבאות, לא יודע למה
-	for(int i=0; i<apartment->length; i++)
-	{
-		free(apartment->squares[i]);
-	}
+	free(apartment->length);
+	free(apartment->width);
+	free(apartment->price);
 	free(apartment->squares);
-	apartment->squares = NULL;
-	printf("destroy test 4\n");
-	free(apartment);	// זה לא מצליח לעבור את השורה הזאת ולא ברור למה
-	printf("destroy test 5\n");
 }
 
-void print(Apartment apartment)
-{
-	printf("length: %d, width: %d, price: %d\n", apartment->length, apartment->width, apartment->price);
-		for(int i=0; i<apartment->length; i++)
-		{
-			for(int j=0; j<apartment->width; j++)
-			{
-				if(apartment->squares[i][j]==WALL)
-					printf("W ");
-				else printf("E ");
-			}
-			printf("\n");
-		}
-}
+
 
 
 
