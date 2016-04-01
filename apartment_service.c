@@ -19,14 +19,20 @@ int partition( int a[], int l, int r);
 
 
 ApartmentService serviceCreate(int maxNumOfApartments)
-{	// יש לי הרגשה שצריך להשתמש במאלוק אבל לא עשיתי את זה, אופסי
+{
 	if(maxNumOfApartments <= 0)
 		return NULL;
-	ApartmentService service;  // מה הוא רוצה פההההההה
+	ApartmentService service = malloc(sizeof(ApartmentService));
+	if(service == NULL)
+		return NULL;
 	service->maxNumOfApartments = maxNumOfApartments;
 	service->numOfApartments = 0;
 	service->apartments = malloc(maxNumOfApartments *sizeof(Apartment));
+	if(service->apartments == NULL)
+		return NULL;
 	service->ids = malloc(maxNumOfApartments *sizeof(int));
+	if(service->ids == NULL)
+		return NULL;
 	return service;
 }
 

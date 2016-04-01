@@ -37,8 +37,9 @@ Apartment apartmentCreate(SquareType** squares, int length, int width, int price
 {
 	if(squares == NULL || length <= 0 || width <= 0 || price < 0)
 		return NULL;
-	struct apartment_t apartmentT;
-	Apartment apartment = &apartmentT;
+	Apartment apartment = malloc(sizeof(Apartment));
+	if(apartment == NULL)
+		return NULL;
 	apartment->length = length;
 	apartment->width = width;
 	apartment->price = price;
@@ -58,46 +59,79 @@ Apartment apartmentCreate(SquareType** squares, int length, int width, int price
 			apartment->squares[i][j] = squares[i][j];	// המפה של הדירה נקלטת בסדר, אולי יש בעיה בשמירה
 		}
 	}
-	printf("length: %d, width: %d, price: %d\n", apartment->length, apartment->width, apartment->price);
 	return apartment;
 }
 
-ApartmentResult apartmentIsSameRoom(Apartment apartment, int row1, int col1,
-		 int row2, int col2, bool* outResult)
+void apartmentDestroy(Apartment apartment)
 {
-	if(row1>=apartment->width || col1>=apartment->length
-			|| row2>=apartment->width || col2>=apartment->length)
+	if(apartment == NULL)
+		return;
+	for(int i=0; i<apartment->length; i++)
+	{
+		free(apartment->squares[i]);
+	}
+	free(apartment->squares);
+	free(apartment);
+}
+
+Apartment apartmentCopy(Apartment apartment)
+{
+	if(apartment == NULL)
+		return NULL;
+	Apartment copy = apartmentCreate(apartment->squares, apartment->length, apartment->width, apartment->price);
+	return copy;
+}
+
+// doesn't work
+ApartmentResult apartmentIsSameRoom(Apartment apartment, int row1, int col1, int row2, int col2, bool* outResult)
+{
+	if(row1 >= apartment->length || col1 >= apartment->width
+			|| row2 >= apartment->length || col2 >= apartment->width
+			|| row1 < 0 || col1 < 0 || row2 < 0 || col2 < 0)
+	{
+		*outResult = false;
 		return APARTMENT_OUT_OF_BOUNDS;
+	}
 	if(apartment->squares[row1][col1] == WALL || apartment->squares[row2][col2] == WALL)
+	{
+		*outResult = false;
 		return APARTMENT_NO_ROOM;
+	}
+	printf("ookay i didn't fail till the pathfinding\n");
 	checkPath(apartment, row1, col1, row2, col2, outResult);
 	return APARTMENT_SUCCESS;
 }
 
 void checkPath(Apartment apartment, int currentRow, int currentCol, int destinationRow, int destinationCol, bool* outResult)
 {
+
 	if(currentRow == destinationRow && currentCol == destinationCol)
-	{
+
 		*outResult = true;
-		return;
-	}
+	// the problem is with returning the answer here, don't know why I'm having trouble
+	if(*outResult)
+			return;
+
 	apartment->squares[currentRow][currentCol] = WALL;
 
 	if(currentRow+1 < apartment->length &&
 			apartment->squares[currentRow+1][currentCol] == EMPTY)
 		checkPath(apartment, currentRow+1, currentCol, destinationRow, destinationCol, outResult);
-
+	printf("test1\n");
 	if(currentRow-1 >= 0 && apartment->squares[currentRow-1][currentCol] == EMPTY)
 		checkPath(apartment, currentRow-1, currentCol, destinationRow, destinationCol, outResult);
-
+	printf("test2\n");
 	if(currentCol+1 < apartment->width &&
 			apartment->squares[currentRow][currentCol+1] == EMPTY)
 		checkPath(apartment, currentRow+1, currentCol, destinationRow, destinationCol, outResult);
-
+	printf("test3\n");
 	if(currentRow-1 >= 0 && apartment->squares[currentRow][currentCol-1] == EMPTY)
 		checkPath(apartment, currentRow-1, currentCol, destinationRow, destinationCol, outResult);
-
+	printf("test4\n");
 	apartment->squares[currentRow][currentCol] = EMPTY;
+
+	*outResult = false;
+	return;
 }
 
 int apartmentTotalArea(Apartment apartment)
@@ -110,27 +144,57 @@ int apartmentTotalArea(Apartment apartment)
 	return empties;
 }
 
-
-/*
-ApartmentResult apartmentRoomArea(Apartment apartment, int row, int col,
-			int* outArea)
-{	// אפשר להתחיל בקורדינטה ולהתפשט על כל השטח של החדר
-	int squares = 0;
+ApartmentResult apartmentRoomArea(Apartment apartment, int row, int col, int* outArea)
+{
+	if(row < 0 || row >= apartment->length || col < 0 || col >= apartment->width)
+		return APARTMENT_OUT_OF_BOUNDS;	// אני לא סגור אם זאת הטעות הנכונה
+	*outArea = 0;
+	bool path = false;
 	for(int i=0; i<apartment->length; i++)
 	{
 		for(int j=0; j<apartment->width; j++)
 		{
-			if(i!=row || j!=col)
-			{
-				bool sameRoom = false;
-				apartmentIsSameRoom(apartment, row, col, i, j);
-			}
+			checkPath(apartment, i, j, row, col, &path);
+			if(path)
+				(*outArea)++;
 		}
 	}
 	return APARTMENT_SUCCESS;
 }
+
+/*
+ApartmentResult apartmentSplit(Apartment apartment, bool splitByRow,
+								int index, Apartment* first,
+								Apartment* second);
 */
 
+//
+int apartmentNumOfRooms(Apartment apartment)
+{
+	int roomCount = 0;
+	bool inCountedRoom = false;
+	for(int i=0; i<apartment->length; i++)
+	{
+		for(int j=0; j<apartment->width; j++)
+		{
+			inCountedRoom = false;
+			for(int ii = 0; ii< i; ii++)
+			{
+				for(int jj = 0; jj<j; jj++)
+				{
+					apartmentIsSameRoom(apartment, i, j, ii, jj, &inCountedRoom);
+					if(inCountedRoom)
+						break;
+				}
+				if(inCountedRoom)
+					break;
+			}
+			if(!inCountedRoom)
+				roomCount++;
+		}
+	}
+	return roomCount;
+}
 
 bool apartmentIsIdentical(Apartment apartment1, Apartment apartment2)
 {
@@ -154,39 +218,6 @@ int apartmentGetPrice(Apartment apartment)
 }
 
 
-Apartment apartmentCopy(Apartment apartment)
-{
-	if(apartment == NULL)
-		return NULL;
-	Apartment copy = malloc(sizeof(Apartment));
-	copy->length = apartment->length;
-	copy->width = apartment->width;
-	copy->price = apartment->price;
-	copy->squares = malloc(copy->length*sizeof(SquareType)); // רצוי לבדוק אם זה נכון
-	for(int i=0; i<copy->length; i++)
-	{
-		copy->squares[i] = malloc(copy->width*sizeof(SquareType));
-		for(int j=0; j<copy->width; j++)
-			copy->squares[i][j] = apartment->squares[i][j];
-	}
-	return copy;
-}
-
-void apartmentDestroy(Apartment apartment)
-{
-	if(apartment == NULL)
-		return;
-	printf("destroy test 2\n");	// זה גם דורש שאשיר את ההדפסה הזאת בשביל ההדפסות הבאות, לא יודע למה
-	for(int i=0; i<apartment->length; i++)
-	{
-		free(apartment->squares[i]);
-	}
-	free(apartment->squares);
-	apartment->squares = NULL;
-	printf("destroy test 4\n");
-	free(apartment);	// זה לא מצליח לעבור את השורה הזאת ולא ברור למה
-	printf("destroy test 5\n");
-}
 
 void print(Apartment apartment)
 {
