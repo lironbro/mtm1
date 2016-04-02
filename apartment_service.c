@@ -1,7 +1,7 @@
 /*
  * apartment_service.c
  *
- *  Created on: 28 במרץ 2016
+ *  Created on: 28 ׳‘׳׳¨׳¥ 2016
  *      Author: Liron
  */
 
@@ -11,6 +11,7 @@
 #include "apartment.h"
 #include "apartment_service.h"
 
+#define CHECK_POSITIVE(a, b, c) (a>=0) && (b>=0) && (c>=0)
 
 void quickSort( int a[], int l, int r);
 
@@ -19,14 +20,20 @@ int partition( int a[], int l, int r);
 
 
 ApartmentService serviceCreate(int maxNumOfApartments)
-{	// יש לי הרגשה שצריך להשתמש במאלוק אבל לא עשיתי את זה, אופסי
+{
 	if(maxNumOfApartments <= 0)
 		return NULL;
-	ApartmentService service;  // מה הוא רוצה פההההההה
+	ApartmentService service = malloc(sizeof(ApartmentService));
+	if(service == NULL)
+		return NULL;
 	service->maxNumOfApartments = maxNumOfApartments;
 	service->numOfApartments = 0;
 	service->apartments = malloc(maxNumOfApartments *sizeof(Apartment));
+	if(service->apartments == NULL)
+		return NULL;
 	service->ids = malloc(maxNumOfApartments *sizeof(int));
+	if(service->ids == NULL)
+		return NULL;
 	return service;
 }
 
@@ -69,8 +76,38 @@ ApartmentServiceResult servicePriceMedian(ApartmentService service,
 	return APARTMENT_SUCCESS;
 }
 
+ApartmentServiceResult serviceAreaMedian(ApartmentService service,
+        int* outResult)
+{
+    if(service->apartments == NULL)
+        return APARTMENT_SERVICE_EMPTY;
+    int length = service->numOfApartments;
+    int area[length];
+    for(int i=0; i<length; i++)
+        area[i] = (service->apartments[i]->length)
+        * (service->apartments[i]->width);
+    quickSort(area, 0, length-1)
+    if(length%2 == 0)
+		*outResult = (area[length/2]+area[length/2+1])/2;
+	else *outResult = area[length/2+1];
+}
 
-// את שתי הפונקציות הבאות העתקתי מהאינטרנט, צריך לבדוק אם הן סבבה
+ApartmentServiceResult serviceSearch(ApartmentService service, int area,
+        int rooms, int price, Apartment* outApartment)
+{
+    int lastLocation=-1;
+    if(!CHECK_POSITIVE(area, rooms, price))
+        return APARTMENT_SERVICE_OUT_OF_BOUNDS;
+    if(service->numOfApartments<=0)
+        return APARTMENT_SERVICE_EMPTY;
+    length = service->numOfApartments;
+    for(int i=0; i<length; i++)
+    {
+
+    }
+}
+
+// ׳׳× ׳©׳×׳™ ׳”׳₪׳•׳ ׳§׳¦׳™׳•׳× ׳”׳‘׳׳•׳× ׳”׳¢׳×׳§׳×׳™ ׳׳”׳׳™׳ ׳˜׳¨׳ ׳˜, ׳¦׳¨׳™׳ ׳׳‘׳“׳•׳§ ׳׳ ׳”׳ ׳¡׳‘׳‘׳”
 void quickSort( int a[], int l, int r)
 {
 	int j;
