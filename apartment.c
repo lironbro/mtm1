@@ -253,6 +253,9 @@ ApartmentResult apartmentChangePrice(Apartment apartment, int percent)
 		return APARTMENT_PRICE_NOT_IN_RANGE;
 	apartment->price *= (100+percent);
 	apartment->price /= 100;
+	bool round = apartment->price % 100 != 0 && percent < 0;	// HOW U DO DIS????
+	if(round)
+		apartment->price++;
 	return APARTMENT_SUCCESS;
 }
 
@@ -325,12 +328,11 @@ bool checkPath(Apartment apartment, int currentRow, int currentCol, int destinat
 	return r1 || r2 || r3 || r4;
 }
 
-// works
+// works, might crash if the apartment isn't initialized well
 void print(Apartment apartment)
 {
 	if(apartment == NULL || apartment->length <= 0 || apartment->width <= 0 || apartment->price < 0 || apartment->squares == NULL)
 	{
-		printf("returned\n");
 		return;
 	}
 	printf("length: %d, width: %d, price: %d\n", apartment->length, apartment->width, apartment->price);

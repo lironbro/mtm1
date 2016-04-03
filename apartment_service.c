@@ -117,10 +117,9 @@ ApartmentServiceResult serviceGetById(ApartmentService service, int id, Apartmen
 	{
 		if(service->ids[i] == id)
 		{
-			outApartment = &apartmentCopy(service->apartments[i]);
+			*outApartment = apartmentCopy(service->apartments[i]);
 			return APARTMENT_SERVICE_SUCCESS;
 		}
-
 	}
 	return APARTMENT_SERVICE_NO_FIT;
 }
@@ -142,7 +141,7 @@ ApartmentServiceResult serviceDeleteById(ApartmentService service, int id)
 	}
 	if(index == -1)
 		return APARTMENT_SERVICE_NO_FIT;
-	Apartment* apartments = malloc(service.maxNumOfApartments*sizeof(Apartment));
+	Apartment* apartments = malloc(service->maxNumOfApartments*sizeof(Apartment));
 	if(apartments == NULL)
 		return APARTMENT_SERVICE_OUT_OF_MEM;
 	for(int i=0, j=0; i<service->numOfApartments; i++)
