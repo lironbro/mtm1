@@ -61,7 +61,7 @@ Apartment apartmentCreate(SquareType** squares, int length, int width, int price
 // should work, maybe with broken pointers it won't
 void apartmentDestroy(Apartment apartment)
 {
-	if(apartment == NULL || apartment->length <= 0 || apartment->width <= 0 || apartment->squares == NULL)
+	if(apartment == NULL || apartment->length <= 0 || apartment->width <= 0 || (apartment->squares) == NULL)
 	{
 		free(apartment);
 		return;
@@ -70,7 +70,7 @@ void apartmentDestroy(Apartment apartment)
 	{
 		free(apartment->squares[i]);
 	}
-	free(apartment->squares);
+	free(&(apartment->squares));
 	free(apartment);
 }
 

@@ -7,11 +7,9 @@
 
 bool apartment_combo_test() {
 	bool final = true;
-	printf("testing1");
 	SquareType square[2] = { WALL, EMPTY };
 	SquareType* squarePtr = square;
 
-	printf("testing1");
 	Apartment apartment = apartmentCreate(&squarePtr, 1, 2, 100);
 
 	bool result;
@@ -42,10 +40,54 @@ bool apartment_combo_test() {
 	return final;
 }
 
+bool lironsTest()
+{
+	bool final = true;
+
+	int length = 12, width = 15, price = 35;
+	SquareType** squares  = malloc(length*sizeof (SquareType*));
+	for(int i=0; i<length; i++)
+		squares[i] = malloc(width *sizeof(SquareType));
+	for(int i=0; i<length; i++)
+	{
+		for(int j=0; j<width; j++)
+		{
+			if(i == 0 || i == length-1 || j == 0 || j == width-1 || i == length/2 || j == width/2 || j==width/3 || i ==length/3)
+				squares[i][j] = WALL;
+			else
+				squares[i][j] = EMPTY;
+		}
+	}
+	Apartment apt = apartmentCreate(squares, length, width, price);
+	squares[5][6] = WALL;
+	Apartment apt1 = apartmentCreate(squares, length, width, price);
+	free(squares);
+
+	final = !apartmentIsIdentical(apt1, apt);
+
+	int rooms = apartmentNumOfRooms(apt);
+	final = final && rooms == 9;
+
+	TEST_EQUALS(final, APARTMENT_SUCCESS, apartmentIsSameRoom(apt, 3, 4, 3, 1, &final));
+
+	int roomArea;
+	TEST_EQUALS(final, APARTMENT_SUCCESS, apartmentRoomArea(apt, 7, 8, &roomArea));
+	final = final && roomArea == 24;
+
+	TEST_EQUALS(final, APARTMENT_SUCCESS, apartmentChangePrice(apt, -50));
+	final = final && apt->price == 18;
+
+	apartmentDestroy(apt);
+	apartmentDestroy(apt1);
+
+	return final;
+}
+
+
 
 int main() {
 	RUN_TEST(apartment_combo_test);
-	// TODO: add more tests:
+	RUN_TEST(lironsTest);
 	// RUN_TEST(...);
 	return 0;
 }
