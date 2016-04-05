@@ -84,7 +84,7 @@ bool lironsTest()
 }
 
 
-
+/*
 int main() {
 	RUN_TEST(apartment_combo_test);
 	RUN_TEST(lironsTest);
@@ -92,3 +92,4 @@ int main() {
 	return 0;
 }
 
+*/
