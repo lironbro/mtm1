@@ -58,20 +58,31 @@ Apartment apartmentCreate(SquareType** squares, int length, int width, int price
 	return apartment;
 }
 
-// should work, maybe with broken pointers it won't
+void destroySquares(SquareType*** sq,int length,int width)
+{
+	for(int i=0;i<length;i++)
+	{
+		free((*sq)[i]);
+	}
+	free(*sq);
+	return;
+}
+
+//does not work
 void apartmentDestroy(Apartment apartment)
 {
-	if(apartment == NULL || apartment->length <= 0 || apartment->width <= 0 || (apartment->squares) == NULL)
-	{
+	if(apartment == NULL || apartment->length <= 0 || apartment->width <= 0 || &(apartment->squares) == NULL)
+		{
+			free(apartment);
+			return;
+		}
+		for(int i=0; i<apartment->length; i++)
+		{
+			free(apartment->squares[i]);	// seems to fail here
+		}
+		free(apartment->squares);
 		free(apartment);
-		return;
-	}
-	for(int i=0; i<apartment->length; i++)
-	{
-		free(apartment->squares[i]);
-	}
-	free(&(apartment->squares));
-	free(apartment);
+
 }
 
 // works
@@ -204,6 +215,35 @@ ApartmentResult apartmentSplit(Apartment apartment, bool splitByRow,
     }
     return APARTMENT_SUCCESS;
 }
+
+/*
+ApartmentResult splitAux(Apartment *apartment, Apartment** first,
+		Apartment** second, int index, int lengthOrWidth, int splitByRow)
+{
+	for(int i=0; i<lengthOrWidth; i++)
+		if(apartment->squares[index][i] == EMPTY)
+			return APARTMENT_BAD_SPLIT;
+	int price1 = apartment->price*(index+1)/(apartment->length);
+	int price2 = apartment->price*(apartment->length-index)/(apartment->length);
+	SquareType** squares = malloc((apartment->length-index-1)*sizeof(SquareType*));
+	if(squares == NULL)
+	    return APARTMENT_OUT_OF_MEM;
+	for(int i=0; i<apartment->length-index-1; i++) {
+		squares[i] = malloc(apartment->width*sizeof(SquareType));
+	    if(squares[i] == NULL)
+	    	return APARTMENT_OUT_OF_MEM;
+	    for(int j=0; j<apartment->width; j++) {
+	    	squares[i][j] = apartment->squares[i+index+1][j];
+	    }
+	}
+	*first = apartmentCreate(apartment->squares, index, apartment->width, price1);
+	*second = apartmentCreate(&apartment->squares[index+1], apartment->length-index-1, apartment->width, price2);
+	for(int i=0; i<apartment->length; i++)
+		free(squares[i]);
+	free(squares);
+	return APARTMENT_SUCCESS;
+}
+*/
 
 // works
 int apartmentNumOfRooms(Apartment apartment)

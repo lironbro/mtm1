@@ -14,6 +14,21 @@
 /*
 int main()
 {
+
+	ApartmentService service = serviceCreate(2);
+	ApartmentService service2 = serviceCopy(service);
+	SquareType square = EMPTY;
+	SquareType* squarePtr = &square;
+	Apartment apartment = apartmentCreate(&squarePtr, 1, 1, 100);
+	serviceAddApartment(service, apartment, 1337);
+	apartmentDestroy(apartment);
+	printf("apartment with id %d\n",service->ids[0]);
+	print(service->apartments[0]);
+	serviceDeleteById(service, 1337);
+	print(apartment);
+
+
+	/*
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
 
@@ -77,8 +92,9 @@ int main()
 	apartmentDestroy(apt2);
 	apartmentDestroy(apt3);
 	printf("destroyed");
+
 	return 0;
 }
 
-
 */
+

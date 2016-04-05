@@ -51,7 +51,8 @@ ApartmentServiceResult serviceAddApartment(ApartmentService service,
 		if(service->ids[i] == id)
 			return APARTMENT_SERVICE_ALREADY_EXISTS;
 	}
-	service->apartments[service->numOfApartments] = apartment;
+
+	service->apartments[service->numOfApartments] = apartmentCopy(apartment);
 	service->ids[service->numOfApartments] = id;
 	service->numOfApartments++;
 	return APARTMENT_SUCCESS;
@@ -62,53 +63,74 @@ int serviceNumberOfApatments(ApartmentService service)
 	return service->numOfApartments;
 }
 
-ApartmentServiceResult servicePriceMedian(ApartmentService service,
-		int* outResult)
+ApartmentServiceResult servicePriceMedian(ApartmentService service, int* outResult)
 {
+	if (service == NULL)
+		return APARTMENT_SERVICE_NULL_ARG;
+	if(service->apartments == NULL || service->maxNumOfApartments == 0)
+	        return APARTMENT_SERVICE_EMPTY;
 	int length = service->numOfApartments;
-	int prices[length];
+	int* prices = malloc(length*sizeof(int));
 	for(int i=0; i<length; i++)
+	{
 		prices[i] = apartmentGetPrice(service->apartments[i]);
+	}
 	quickSort(prices, 0, length-1);
 	if(length%2 == 0)
-		*outResult = (prices[length/2]+prices[length/2+1])/2;
-	else *outResult = prices[length/2+1];
+		*outResult = (prices[length/2]+prices[length/2-1])/2;
+	else *outResult = prices[length/2];
+	free(prices);
 	return APARTMENT_SUCCESS;
 }
 
 ApartmentServiceResult serviceAreaMedian(ApartmentService service,
         int* outResult)
 {
-    if(service->apartments == NULL)
+	if (service == NULL)
+			return APARTMENT_SERVICE_NULL_ARG;
+    if(service->apartments == NULL || service->maxNumOfApartments == 0)
         return APARTMENT_SERVICE_EMPTY;
     int length = service->numOfApartments;
-    int area[length];
+    int* area = malloc(length*sizeof(int));
     for(int i=0; i<length; i++)
         area[i] = (apartmentGetLength(service->apartments[i])) * (apartmentGetWidth(service->apartments[i]));
     quickSort(area, 0, length-1);
     if(length%2 == 0)
-		*outResult = (area[length/2]+area[length/2+1])/2;
-	else *outResult = area[length/2+1];
+		*outResult = (area[length/2]+area[length/2-1])/2;
+	else *outResult = area[length/2];
+    free(area);
     return APARTMENT_SERVICE_SUCCESS;
 }
 
 ApartmentServiceResult serviceSearch(ApartmentService service, int area,
         int rooms, int price, Apartment* outApartment)
 {	// ziv's function
-    int lastLocation=-1;
-    if(!CHECK_POSITIVE(area, rooms, price))
-        return APARTMENT_SERVICE_OUT_OF_BOUNDS;
-    if(service->numOfApartments<=0)
-        return APARTMENT_SERVICE_EMPTY;
-    int length = service->numOfApartments;
-    for(int i=0; i<length; i++)
-    {
-
-    }
+	int lastLocation=-1, currPrice;
+	if(!CHECK_POSITIVE(area, rooms, price))
+		return APARTMENT_SERVICE_OUT_OF_BOUNDS;
+	if((service->numOfApartments)<=0)
+		return APARTMENT_SERVICE_EMPTY;
+	int length = service->numOfApartments;
+	for(int i=0; i<length; i++) {
+		int currArea = apartmentGetWidth(service->apartments[i])
+				* apartmentGetLength(service->apartments[i]);
+		int currRooms = apartmentNumOfRooms(service->apartments[i]);
+		currPrice = apartmentGetPrice(service->apartments[i]);
+		if(currArea>=area && currRooms>=rooms && currPrice<=price)
+			lastLocation=i;
+	}
+	if(lastLocation==-1)
+		return APARTMENT_SERVICE_NO_FIT;
+	*outApartment = apartmentCreate(service->apartments[lastLocation]->squares,
+		apartmentGetLength(service->apartments[lastLocation]),
+		apartmentGetWidth(service->apartments[lastLocation]), currPrice);
+	return APARTMENT_SERVICE_SUCCESS;
 }
 
 ApartmentServiceResult serviceGetById(ApartmentService service, int id, Apartment* outApartment)
 {
+	if (service == NULL)
+		return APARTMENT_SERVICE_NULL_ARG;
 	if(id < 0)
 		return APARTMENT_SERVICE_OUT_OF_BOUNDS;
 	if(service->apartments == NULL || service->numOfApartments == 0)
@@ -117,7 +139,7 @@ ApartmentServiceResult serviceGetById(ApartmentService service, int id, Apartmen
 	{
 		if(service->ids[i] == id)
 		{
-			*outApartment = apartmentCopy(service->apartments[i]);
+			outApartment = apartmentCopy(service->apartments[i]);
 			return APARTMENT_SERVICE_SUCCESS;
 		}
 	}
@@ -126,10 +148,12 @@ ApartmentServiceResult serviceGetById(ApartmentService service, int id, Apartmen
 
 ApartmentServiceResult serviceDeleteById(ApartmentService service, int id)
 {	// freeing might be needed
+	if (service == NULL)
+		return APARTMENT_SERVICE_NULL_ARG;
 	if(id < 0)
 		return APARTMENT_SERVICE_OUT_OF_BOUNDS;
 	if(service->apartments == NULL || service->numOfApartments == 0)
-			return APARTMENT_SERVICE_EMPTY;
+		return APARTMENT_SERVICE_EMPTY;
 	int index = -1;
 	for(int i=0; i<service->numOfApartments; i++)
 	{
@@ -141,16 +165,13 @@ ApartmentServiceResult serviceDeleteById(ApartmentService service, int id)
 	}
 	if(index == -1)
 		return APARTMENT_SERVICE_NO_FIT;
-	Apartment* apartments = malloc(service->maxNumOfApartments*sizeof(Apartment));
-	if(apartments == NULL)
-		return APARTMENT_SERVICE_OUT_OF_MEM;
-	for(int i=0, j=0; i<service->numOfApartments; i++)
+	apartmentDestroy(&(service->apartments[index]));	// this might work, not sure yet
+	for(int i=index; i<service->maxNumOfApartments-1; i++)
 	{
-		if(i != index)
-			apartments[j++] = service->apartments[i];
+		service->apartments[i] = service->apartments[i+1];
 	}
-	service->apartments = apartments;
-	return APARTMENT_SERVICE_SUCCESS;
+	service->apartments[service->maxNumOfApartments-1] = NULL;
+	return APARTMENT_SUCCESS;
 }
 
 ApartmentService serviceCopy(ApartmentService service)
@@ -177,10 +198,11 @@ void serviceDestroy(ApartmentService service)
 		apartmentDestroy(service->apartments[i]);
 		free(service->apartments[i]); 	// might be unnecessary, but won't hurt
 	}
+	free(service->apartments);
 	free(service);
 }
 
-void quickSort( int a[], int l, int r)
+void quickSort( int* a, int l, int r)
 {
 	int j;
 
@@ -193,7 +215,7 @@ void quickSort( int a[], int l, int r)
 
 }
 
-int partition( int a[], int l, int r) {
+int partition( int* a, int l, int r) {
 	int pivot, i, j, t;
 	pivot = a[l];
 	i = l; j = r+1;
@@ -208,5 +230,4 @@ int partition( int a[], int l, int r) {
 	t = a[l]; a[l] = a[j]; a[j] = t;
 	return j;
 }
-
 
