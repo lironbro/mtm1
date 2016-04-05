@@ -1,5 +1,6 @@
 #include "aux_macros.h"
 #include "apartment.h"
+#include "apartment_service.h"
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -7,11 +8,11 @@
 
 bool apartment_combo_test() {
 	bool final = true;
-	SquareType square[2] = { WALL, EMPTY };
-	SquareType* squarePtr = square;
+	SquareType square = EMPTY;
+	SquareType* squarePtr = &square;
+	Apartment apartment = apartmentCreate(&squarePtr, 1, 1, 100);
 
-	Apartment apartment = apartmentCreate(&squarePtr, 1, 2, 100);
-
+	/*
 	bool result;
 	TEST_EQUALS(final, APARTMENT_NULL_ARG, apartmentIsSameRoom(NULL, 0, 1, 0, 1, &result));
 	SquareType squareVal;
@@ -31,11 +32,23 @@ bool apartment_combo_test() {
 	TEST_EQUALS(final, APARTMENT_SUCCESS, apartmentChangePrice(apartment, 10));
 	TEST_EQUALS(final, 110, apartmentGetPrice(apartment));
 
+	*/
 	Apartment copy = apartmentCopy(apartment);
 	TEST_EQUALS(final, true, apartmentIsIdentical(apartment, copy));
 
-	apartmentDestroy(apartment);
+	ApartmentService service = serviceCreate(2);
+
+	printf("predestroying\n");
+	print(apartment);
+	print(copy);
+
+	//apartmentDestroy(apartment);
+	//apartmentDestroy(apartment);
 	apartmentDestroy(copy);
+
+	printf("postdestroying\n");
+	print(apartment);
+	print(copy);
 
 	return final;
 }
@@ -63,6 +76,7 @@ bool lironsTest()
 	Apartment apt1 = apartmentCreate(squares, length, width, price);
 	free(squares);
 
+	/*
 	final = !apartmentIsIdentical(apt1, apt);
 
 	int rooms = apartmentNumOfRooms(apt);
@@ -77,19 +91,23 @@ bool lironsTest()
 	TEST_EQUALS(final, APARTMENT_SUCCESS, apartmentChangePrice(apt, -50));
 	final = final && apt->price == 18;
 
+	*/
+
 	apartmentDestroy(apt);
 	apartmentDestroy(apt1);
+
+
 
 	return final;
 }
 
 
-
+/*
 int main() {
 	RUN_TEST(apartment_combo_test);
 	RUN_TEST(lironsTest);
 	// RUN_TEST(...);
 	return 0;
 }
-
+*/
 

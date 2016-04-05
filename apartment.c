@@ -17,6 +17,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <assert.h>
 #include <stdbool.h>
 #include "apartment.h"
 
@@ -71,17 +72,19 @@ void destroySquares(SquareType*** sq,int length,int width)
 //does not work
 void apartmentDestroy(Apartment apartment)
 {
-	if(apartment == NULL || apartment->length <= 0 || apartment->width <= 0 || &(apartment->squares) == NULL)
-		{
-			free(apartment);
-			return;
-		}
-		for(int i=0; i<apartment->length; i++)
-		{
-			free(apartment->squares[i]);	// seems to fail here
-		}
-		free(apartment->squares);
-		free(apartment);
+	if(apartment == NULL || apartment->length <= 0 || apartment->width <= 0 || apartment->squares == NULL)
+	{
+		//free(apartment);	// this keeps fucking me up, this line is probably necessary but the code doesn't run with it
+		return;
+	}
+	for(int i=0; i<apartment->length; i++)
+	{
+		free(apartment->squares[i]);	// seems to fail here
+		apartment->squares[i] = NULL;
+	}
+	free(apartment->squares);
+	apartment->squares = NULL;
+	//free(apartment);		// this keeps fucking us up, it should probably exist in the code, but hey
 
 }
 
@@ -312,18 +315,21 @@ ApartmentResult apartmentChangePrice(Apartment apartment, int percent)
 // works
 int apartmentGetPrice(Apartment apartment)
 {
+	assert(apartment != NULL);
 	return apartment->price;
 }
 
 // works
 int apartmentGetLength(Apartment apartment)
 {
+	assert(apartment != NULL);
 	return apartment->length;
 }
 
 // works
 int apartmentGetWidth(Apartment apartment)
 {
+	assert(apartment != NULL);
 	return apartment->width;
 }
 
@@ -389,7 +395,10 @@ void print(Apartment apartment)
 		for(int i=0; i<apartment->length; i++)
 		{
 			if(apartment->squares[i] == NULL)
+			{
+				printf("NULLLLLLLLLLLLLLLLLLLLLLL %d\n", i);
 				return;
+			}
 			for(int j=0; j<apartment->width; j++)
 			{
 				if(apartment->squares[i][j]==WALL)

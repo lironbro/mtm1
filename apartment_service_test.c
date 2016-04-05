@@ -18,7 +18,7 @@ bool service_test_combo() {
 
 	int id = 1000;
 	TEST_EQUALS(final, APARTMENT_SERVICE_NULL_ARG, serviceAreaMedian(NULL, &intResult));
-	//TEST_EQUALS(final, APARTMENT_SERVICE_EMPTY, serviceDeleteApartment(service, apartment));
+	// not yet written TEST_EQUALS(final, APARTMENT_SERVICE_EMPTY, serviceDeleteApartment(service, apartment));
 	TEST_EQUALS(final, APARTMENT_SERVICE_SUCCESS, serviceAddApartment(service, apartment, id));
 	TEST_EQUALS(final, APARTMENT_SERVICE_SUCCESS, servicePriceMedian(service, &intResult));
 	TEST_EQUALS(final, 100, intResult);
@@ -33,15 +33,30 @@ bool service_test_combo() {
 	final = final && *apt == apartment;
 	*/
 
-
-	apartmentDestroy(apartment);
-
+	apartmentDestroy(apartment);	// very strange in here, I don't actually free apartment but doesn't work otherwise
 	serviceDestroy(service);
 	serviceDestroy(service2);
+
+
+
+	/*
+	 * To whom it may regard,
+	 * here's the deal: the classes, as they're written right now, pass the initial tests
+	 * but I've had to mess with the delete functions in each class because freeing the struct you're working
+	 * on seems to cause some real big issues
+	 * plus the serviceDeleteApartment function doesn't exist here
+	 * and I haven't really checked the validity of other functions here
+	 * so more work is due
+	 *
+	 * Yours truly,
+	 * Liron
+	 *
+	 *
+	 */
 	return final;
 }
 
-/*
+
 int main() {
 	RUN_TEST(service_test_combo);
 	// TODO: add more tests:
@@ -49,4 +64,4 @@ int main() {
 	return 0;
 }
 
-*/
+

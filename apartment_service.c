@@ -8,6 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
+#include <assert.h>
 #include "apartment.h"
 #include "apartment_service.h"
 
@@ -17,7 +18,11 @@ void quickSort( int a[], int l, int r);
 
 int partition( int a[], int l, int r);
 
+void maxSort(int* a, int n);
 
+void swap(int* a, int* b);
+
+int indexOfMax(int* a, int m);
 
 ApartmentService serviceCreate(int maxNumOfApartments)
 {
@@ -54,12 +59,13 @@ ApartmentServiceResult serviceAddApartment(ApartmentService service,
 
 	service->apartments[service->numOfApartments] = apartmentCopy(apartment);
 	service->ids[service->numOfApartments] = id;
-	service->numOfApartments++;
+	(service->numOfApartments)++;
 	return APARTMENT_SUCCESS;
 }
 
 int serviceNumberOfApatments(ApartmentService service)
 {
+	assert(service != NULL);
 	return service->numOfApartments;
 }
 
@@ -68,7 +74,7 @@ ApartmentServiceResult servicePriceMedian(ApartmentService service, int* outResu
 	if (service == NULL)
 		return APARTMENT_SERVICE_NULL_ARG;
 	if(service->apartments == NULL || service->maxNumOfApartments == 0)
-	        return APARTMENT_SERVICE_EMPTY;
+	    return APARTMENT_SERVICE_EMPTY;
 	int length = service->numOfApartments;
 	int* prices = malloc(length*sizeof(int));
 	for(int i=0; i<length; i++)
@@ -93,8 +99,8 @@ ApartmentServiceResult serviceAreaMedian(ApartmentService service,
     int length = service->numOfApartments;
     int* area = malloc(length*sizeof(int));
     for(int i=0; i<length; i++)
-        area[i] = (apartmentGetLength(service->apartments[i])) * (apartmentGetWidth(service->apartments[i]));
-    quickSort(area, 0, length-1);
+        area[i] = apartmentTotalArea(service->apartments[i]);
+    maxSort(area, length);
     if(length%2 == 0)
 		*outResult = (area[length/2]+area[length/2-1])/2;
 	else *outResult = area[length/2];
@@ -165,6 +171,7 @@ ApartmentServiceResult serviceDeleteById(ApartmentService service, int id)
 	}
 	if(index == -1)
 		return APARTMENT_SERVICE_NO_FIT;
+	service->numOfApartments--;
 	apartmentDestroy(&(service->apartments[index]));	// this might work, not sure yet
 	for(int i=index; i<service->maxNumOfApartments-1; i++)
 	{
@@ -192,6 +199,8 @@ ApartmentService serviceCopy(ApartmentService service)
 
 void serviceDestroy(ApartmentService service)
 {
+	if(service == NULL)
+		return;
 	free(service->ids);
 	for(int i=0; i<service->numOfApartments; i++)
 	{
@@ -199,7 +208,7 @@ void serviceDestroy(ApartmentService service)
 		free(service->apartments[i]); 	// might be unnecessary, but won't hurt
 	}
 	free(service->apartments);
-	free(service);
+	//free(service);
 }
 
 void quickSort( int* a, int l, int r)
@@ -229,5 +238,30 @@ int partition( int* a, int l, int r) {
 	}
 	t = a[l]; a[l] = a[j]; a[j] = t;
 	return j;
+}
+
+/* Helper function: finds the index of maximal element */
+int indexOfMax(int* a, int m)
+{
+	int i, i_max = 0;
+	for ( i = 1; i < m; i++ )
+		if ( a[i_max] <= a[i] )
+			i_max = i;
+	return i_max;
+}
+void maxSort(int* a, int n)
+{
+	int length;
+	for ( length = n; length > 1; length-- ) {
+		int i_max = indexOfMax(a, length);
+	swap(&a[i_max], &a[length-1]);
+	}
+}
+
+void swap(int* a, int* b)
+{
+	int temp = *a;
+	*a = *b;
+	*b = temp;
 }
 
