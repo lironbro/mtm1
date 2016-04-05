@@ -61,15 +61,16 @@ Apartment apartmentCreate(SquareType** squares, int length, int width, int price
 // should work, maybe with broken pointers it won't
 void apartmentDestroy(Apartment apartment)
 {
-	if(apartment == NULL || apartment->length < 0 || apartment->width < 0 || apartment->squares == NULL)
+	if(apartment == NULL || apartment->length <= 0 || apartment->width <= 0 || (apartment->squares) == NULL)
+	{
+		free(apartment);
 		return;
+	}
 	for(int i=0; i<apartment->length; i++)
 	{
-		if(apartment->squares[i] == NULL)
-			continue;
 		free(apartment->squares[i]);
 	}
-	free(apartment->squares);
+	free(&(apartment->squares));
 	free(apartment);
 }
 
@@ -85,6 +86,8 @@ Apartment apartmentCopy(Apartment apartment)
 // works
 ApartmentResult apartmentIsSameRoom(Apartment apartment, int row1, int col1, int row2, int col2, bool* outResult)
 {
+	if(apartment == NULL)
+		return APARTMENT_NULL_ARG;
 	if(row1 >= apartment->length || col1 >= apartment->width
 			|| row2 >= apartment->length || col2 >= apartment->width
 			|| row1 < 0 || col1 < 0 || row2 < 0 || col2 < 0
@@ -116,8 +119,12 @@ int apartmentTotalArea(Apartment apartment)
 // works
 ApartmentResult apartmentRoomArea(Apartment apartment, int row, int col, int* outArea)
 {
+	if(apartment == NULL || outArea == NULL)
+		return APARTMENT_NULL_ARG;
 	if(row < 0 || row >= apartment->length || col < 0 || col >= apartment->width)
 		return APARTMENT_OUT_OF_BOUNDS;	// אני לא סגור אם זאת הטעות הנכונה
+	if(apartment->squares[row][col] == WALL)
+		return APARTMENT_NO_ROOM;
 	*outArea = 0;
 	bool path = false;
 	for(int i=0; i<apartment->length; i++)
@@ -150,11 +157,13 @@ ApartmentResult apartmentSplit(Apartment apartment, bool splitByRow,
     	int price2 = apartment->price*(apartment->length-index)/(apartment->length);
 
     	SquareType** squares = malloc((apartment->length-index-1)*sizeof(SquareType*));
-    	if(squares == NULL)		return APARTMENT_OUT_OF_MEM;
+    	if(squares == NULL)
+    		return APARTMENT_OUT_OF_MEM;
     	for(int i=0; i<apartment->length-index-1; i++)
     	{
     	    squares[i] = malloc(apartment->width*sizeof(SquareType));
-    	    if(squares[i] == NULL)	return APARTMENT_OUT_OF_MEM;
+    	    if(squares[i] == NULL)
+    	    	return APARTMENT_OUT_OF_MEM;
     	    for(int j=0; j<apartment->width; j++)
     	    {
     	    	squares[i][j] = apartment->squares[i+index+1][j];
@@ -163,6 +172,9 @@ ApartmentResult apartmentSplit(Apartment apartment, bool splitByRow,
 
     	*first = apartmentCreate(apartment->squares, index, apartment->width, price1);
     	*second = apartmentCreate(&apartment->squares[index+1], apartment->length-index-1, apartment->width, price2);
+    	for(int i=0; i<apartment->length; i++)
+       		free(squares[i]);
+    	free(squares);
     }
     else
     {
@@ -194,7 +206,36 @@ ApartmentResult apartmentSplit(Apartment apartment, bool splitByRow,
     }
     return APARTMENT_SUCCESS;
 }
+/*
+ApartmentResult splitAux(Apartment *apartment, Apartment** first,
+		Apartment** second, int index, int lengthOrWidth, int splitByRow)
+{
+	for(int i=0; i<lengthOrWidth; i++)
+		if(apartment->squares[index][i] == EMPTY)
+			return APARTMENT_BAD_SPLIT;
+	int price1 = apartment->price*(index+1)/(apartment->length);
+	int price2 = apartment->price*(apartment->length-index)/(apartment->length);
 
+	SquareType** squares = malloc((apartment->length-index-1)*sizeof(SquareType*));
+	if(squares == NULL)
+	    return APARTMENT_OUT_OF_MEM;
+	for(int i=0; i<apartment->length-index-1; i++) {
+		squares[i] = malloc(apartment->width*sizeof(SquareType));
+	    if(squares[i] == NULL)
+	    	return APARTMENT_OUT_OF_MEM;
+	    for(int j=0; j<apartment->width; j++) {
+	    	squares[i][j] = apartment->squares[i+index+1][j];
+	    }
+	}
+
+	*first = apartmentCreate(apartment->squares, index, apartment->width, price1);
+	*second = apartmentCreate(&apartment->squares[index+1], apartment->length-index-1, apartment->width, price2);
+	for(int i=0; i<apartment->length; i++)
+		free(squares[i]);
+	free(squares);
+	return APARTMENT_SUCCESS;
+}
+*/
 // works
 int apartmentNumOfRooms(Apartment apartment)
 {
@@ -253,6 +294,9 @@ ApartmentResult apartmentChangePrice(Apartment apartment, int percent)
 		return APARTMENT_PRICE_NOT_IN_RANGE;
 	apartment->price *= (100+percent);
 	apartment->price /= 100;
+	bool round = apartment->price % 100 != 0 && percent < 0;	// HOW U DO DIS????
+	if(round)
+		apartment->price++;
 	return APARTMENT_SUCCESS;
 }
 
@@ -325,12 +369,11 @@ bool checkPath(Apartment apartment, int currentRow, int currentCol, int destinat
 	return r1 || r2 || r3 || r4;
 }
 
-// works
+// works, might crash if the apartment isn't initialized well
 void print(Apartment apartment)
 {
 	if(apartment == NULL || apartment->length <= 0 || apartment->width <= 0 || apartment->price < 0 || apartment->squares == NULL)
 	{
-		printf("returned\n");
 		return;
 	}
 	printf("length: %d, width: %d, price: %d\n", apartment->length, apartment->width, apartment->price);
@@ -348,8 +391,4 @@ void print(Apartment apartment)
 		}
 		printf("\n");
 }
-
-
-
-
 

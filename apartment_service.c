@@ -1,7 +1,7 @@
 /*
  * apartment_service.c
  *
- *  Created on: 28 במרץ 2016
+ *  Created on: 28 2016
  *      Author: Liron
  */
 
@@ -68,7 +68,7 @@ ApartmentServiceResult servicePriceMedian(ApartmentService service,
 	int length = service->numOfApartments;
 	int prices[length];
 	for(int i=0; i<length; i++)
-		prices[i] = service->apartments[i]->price;
+		prices[i] = apartmentGetPrice(service->apartments[i]);
 	quickSort(prices, 0, length-1);
 	if(length%2 == 0)
 		*outResult = (prices[length/2]+prices[length/2+1])/2;
@@ -84,30 +84,112 @@ ApartmentServiceResult serviceAreaMedian(ApartmentService service,
     int length = service->numOfApartments;
     int area[length];
     for(int i=0; i<length; i++)
-        area[i] = (service->apartments[i]->length)
-        * (service->apartments[i]->width);
-    quickSort(area, 0, length-1)
+        area[i] = (apartmentGetLength(service->apartments[i])) * (apartmentGetWidth(service->apartments[i]));
+    quickSort(area, 0, length-1);
     if(length%2 == 0)
 		*outResult = (area[length/2]+area[length/2+1])/2;
 	else *outResult = area[length/2+1];
+    return APARTMENT_SERVICE_SUCCESS;
 }
 
 ApartmentServiceResult serviceSearch(ApartmentService service, int area,
         int rooms, int price, Apartment* outApartment)
-{
-    int lastLocation=-1;
-    if(!CHECK_POSITIVE(area, rooms, price))
-        return APARTMENT_SERVICE_OUT_OF_BOUNDS;
-    if(service->numOfApartments<=0)
-        return APARTMENT_SERVICE_EMPTY;
-    length = service->numOfApartments;
-    for(int i=0; i<length; i++)
-    {
-
-    }
+{	// ziv's function
+	int lastLocation=-1, currPrice;
+	if(!CHECK_POSITIVE(area, rooms, price))
+		return APARTMENT_SERVICE_OUT_OF_BOUNDS;
+	if((service->numOfApartments)<=0)
+		return APARTMENT_SERVICE_EMPTY;
+	int length = service->numOfApartments;
+	for(int i=0; i<length; i++) {
+		int currArea = apartmentGetWidth(service->apartments[i])
+				* apartmentGetLength(service->apartments[i]);
+		int currRooms = apartmentNumOfRooms(service->apartments[i]);
+		currPrice = apartmentGetPrice(service->apartments[i]);
+		if(currArea>=area && currRooms>=rooms && currPrice<=price)
+			lastLocation=i;
+	}
+	if(lastLocation==-1)
+		return APARTMENT_SERVICE_NO_FIT;
+	*outApartment = apartmentCreate(service->apartments[lastLocation]->squares,
+		apartmentGetLength(service->apartments[lastLocation]),
+		apartmentGetWidth(service->apartments[lastLocation]), currPrice);
+	return APARTMENT_SERVICE_SUCCESS;
 }
 
-// את שתי הפונקציות הבאות העתקתי מהאינטרנט, צריך לבדוק אם הן סבבה
+ApartmentServiceResult serviceGetById(ApartmentService service, int id, Apartment* outApartment)
+{
+	if(id < 0)
+		return APARTMENT_SERVICE_OUT_OF_BOUNDS;
+	if(service->apartments == NULL || service->numOfApartments == 0)
+		return APARTMENT_SERVICE_EMPTY;
+	for(int i=0; i< service->numOfApartments; i++)
+	{
+		if(service->ids[i] == id)
+		{
+			*outApartment = apartmentCopy(service->apartments[i]);
+			return APARTMENT_SERVICE_SUCCESS;
+		}
+	}
+	return APARTMENT_SERVICE_NO_FIT;
+}
+
+ApartmentServiceResult serviceDeleteById(ApartmentService service, int id)
+{	// freeing might be needed
+	if(id < 0)
+		return APARTMENT_SERVICE_OUT_OF_BOUNDS;
+	if(service->apartments == NULL || service->numOfApartments == 0)
+			return APARTMENT_SERVICE_EMPTY;
+	int index = -1;
+	for(int i=0; i<service->numOfApartments; i++)
+	{
+		if(service->ids[i] == id)
+		{
+			index = i;
+			break;
+		}
+	}
+	if(index == -1)
+		return APARTMENT_SERVICE_NO_FIT;
+	Apartment* apartments = malloc(service->maxNumOfApartments*sizeof(Apartment));
+	if(apartments == NULL)
+		return APARTMENT_SERVICE_OUT_OF_MEM;
+	for(int i=0, j=0; i<service->numOfApartments; i++)
+	{
+		if(i != index)
+			apartments[j++] = service->apartments[i];
+	}
+	service->apartments = apartments;
+	return APARTMENT_SERVICE_SUCCESS;
+}
+
+ApartmentService serviceCopy(ApartmentService service)
+{
+	if(service == NULL)
+		return NULL;
+	ApartmentService copy = serviceCreate(service->maxNumOfApartments);
+	if(copy == NULL)
+		return NULL;
+	copy->numOfApartments = service->numOfApartments;
+	for(int i=0; i<copy->numOfApartments; i++)
+	{
+		copy->ids[i] = service->ids[i];
+		copy->apartments[i] = apartmentCopy(service->apartments[i]);
+	}
+	return copy;
+}
+
+void serviceDestroy(ApartmentService service)
+{
+	free(service->ids);
+	for(int i=0; i<service->numOfApartments; i++)
+	{
+		apartmentDestroy(service->apartments[i]);
+		free(service->apartments[i]); 	// might be unnecessary, but won't hurt
+	}
+	free(service);
+}
+
 void quickSort( int a[], int l, int r)
 {
 	int j;
