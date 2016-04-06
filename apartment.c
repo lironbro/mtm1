@@ -403,8 +403,8 @@ void apartmentPrint(Apartment apartment)
 		for(int j=0; j<apartment->width; j++)
 		{
 			if(apartment->squares[i][j]==WALL)
-				printf("W ");
-			else printf("E ");
+				printf("# ");
+			else printf("O ");
 		}
 		printf("\n");
 	}

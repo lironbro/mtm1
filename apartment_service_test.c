@@ -53,43 +53,85 @@ bool service_test_combo() {
 	Apartment apt4 = apartmentCreate(squares, length, width, price*3+2);// issues, causes crashing and false values
 	free(squares);
 
+	printf("printing apartments 1111111111111111111111111111111111111111\n\n\n");
+	printf("apartment 1000:\n");
+	apartmentPrint(apt);
+	printf("apartment 1:\n");
+	apartmentPrint(apt1);
+	printf("apartment 2:\n");
+	apartmentPrint(apt2);
+	printf("apartment 3:\n");
+	apartmentPrint(apt3);
+	printf("apartment 4:\n");
+	apartmentPrint(apt4);
+
 	TEST_EQUALS(final, APARTMENT_SERVICE_SUCCESS, serviceAddApartment(service, apt, 1));
 	TEST_EQUALS(final, APARTMENT_SERVICE_SUCCESS, serviceAddApartment(service, apt1, 2));
-	TEST_EQUALS(final, APARTMENT_SERVICE_SUCCESS,serviceAddApartment(service, apt2, 3));
-	TEST_EQUALS(final, APARTMENT_SERVICE_SUCCESS,serviceAddApartment(service, apt3, 4));
+	TEST_EQUALS(final, APARTMENT_SERVICE_SUCCESS, serviceAddApartment(service, apt2, 3));
+	TEST_EQUALS(final, APARTMENT_SERVICE_SUCCESS, serviceAddApartment(service, apt3, 4));
 
+	printf("printing apartments 2222222222222222222222222222222222222222222\n\n\n");
+	printf("apartment 1000:\n");	apartmentPrint(apt);
+	printf("apartment 1:\n");
+	apartmentPrint(apt1);
+	printf("apartment 2:\n");
+	apartmentPrint(apt2);
+	printf("apartment 3:\n");
+	apartmentPrint(apt3);
+	printf("apartment 4:\n");
+	apartmentPrint(apt4);
+
+	printf("printing apartments in arrayyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy\n\n\n");
 	servicePrint(service);
 
 	int medianPrice;
 	for(int i=0; i<service->numOfApartments; i++)
-			printf("price of apartment %d is %d\n", i, apartmentGetPrice(service->apartments[i]));
+		printf("price of apartment %d is %d\n", service->ids[i], apartmentGetPrice(service->apartments[i]));
 	servicePriceMedian(service, &medianPrice);
 	printf("median price is: %d\n", medianPrice);
 	int medianArea;
 	for(int i=0; i<service->numOfApartments; i++)
-			printf("area of apartment %d is %d\n", i, apartmentTotalArea(service->apartments[i]));
+		printf("area of apartment %d is %d\n", service->ids[i], apartmentTotalArea(service->apartments[i]));
 	serviceAreaMedian(service, &medianArea);
 	printf("median area is: %d\n", medianArea);
 
 
+	printf("destroying apartments\n");
 	apartmentDestroy(apt);
+	printf("destroyed apt\n");
 	apartmentDestroy(apt1);
+	printf("destroyed apt1\n");
 	apartmentDestroy(apt2);
+	printf("destroyed apt2\n");
 	apartmentDestroy(apt3);
+	printf("destroyed apt3\n");
 	apartmentDestroy(apt4);
+	printf("destroyed apt4\n");
 	apartmentDestroy(apartment);	// very strange in here, I don't actually free apartment but doesn't work otherwise
+	printf("destroyed apartment\n");	// fails to destroy the service
 	serviceDestroy(service);
+	printf("destroyed service\n");
 	//serviceDestroy(service2);
 
 
 
 	/*
+	 * 5/4/2016
 	 * To whom it may regard,
 	 * here's the deal: the classes, as they're written right now, pass the initial tests
 	 * but I've had to mess with the delete functions in each class because freeing the struct you're working
 	 * on seems to cause some real big issues
 	 * plus the serviceDeleteApartment function doesn't exist here
 	 * and I haven't really checked the validity of other functions here
+	 *
+	 *
+	 * 6/4/2016
+	 * weird thing is, with the this test function it seems to sometimes add the apartments poorly
+	 * meaning it messes with the entire apartment structre, erasing the board and chaning the price
+	 * and other fields. i tried to find out where this happens, my guess is in the serviceAddApartment
+	 * function, but i couldn't locate the bad line because debugging this is a pain in the ass
+	 *
+	 *
 	 * so more work is due
 	 *
 	 * Yours truly,

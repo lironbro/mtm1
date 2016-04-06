@@ -14,9 +14,6 @@
 
 #define CHECK_POSITIVE(a, b, c) (a>=0) && (b>=0) && (c>=0)
 
-void quickSort( int a[], int l, int r);
-
-int partition( int a[], int l, int r);
 
 void maxSort(int* a, int n);
 
@@ -61,10 +58,13 @@ ApartmentServiceResult serviceAddApartment(ApartmentService service,
 		}
 	}
 
+
 	service->apartments[service->numOfApartments] = apartmentCopy(apartment);
+	int oPrice = apartment->price, oLength = apartment->length, oWidth = apartment->width;
+	int cPrice = service->apartments[service->numOfApartments]->price, cLength = service->apartments[service->numOfApartments]->length, cWidth = service->apartments[service->numOfApartments]->width;
 	service->ids[service->numOfApartments] = id;
 	(service->numOfApartments)++;
-	return APARTMENT_SUCCESS;
+	return APARTMENT_SERVICE_SUCCESS;
 }
 
 int serviceNumberOfApatments(ApartmentService service)
