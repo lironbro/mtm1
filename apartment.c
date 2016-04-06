@@ -385,29 +385,31 @@ bool checkPath(Apartment apartment, int currentRow, int currentCol, int destinat
 }
 
 // works, might crash if the apartment isn't initialized well
-void print(Apartment apartment)
+void apartmentPrint(Apartment apartment)
 {
 	if(apartment == NULL || apartment->length <= 0 || apartment->width <= 0 || apartment->price < 0 || apartment->squares == NULL)
 	{
 		return;
 	}
 	printf("length: %d, width: %d, price: %d\n", apartment->length, apartment->width, apartment->price);
-		for(int i=0; i<apartment->length; i++)
+	for(int i=0; i<apartment->length; i++)
+	{
+		//printf("okay now in the loop \n");	// wtf it fails right in the if, why??????
+		if(apartment == NULL || apartment->squares == NULL || apartment->squares[i] == NULL)
 		{
-			if(apartment->squares[i] == NULL)
-			{
-				printf("NULLLLLLLLLLLLLLLLLLLLLLL %d\n", i);
-				return;
-			}
-			for(int j=0; j<apartment->width; j++)
-			{
-				if(apartment->squares[i][j]==WALL)
-					printf("W ");
-				else printf("E ");
-			}
-			printf("\n");
+			printf("NULLLLLLLLLLLLLLLLLLLLLLL %d\n", i);
+			return;
+		}
+		for(int j=0; j<apartment->width; j++)
+		{
+			if(apartment->squares[i][j]==WALL)
+				printf("W ");
+			else printf("E ");
 		}
 		printf("\n");
+	}
+	printf("and that's it for that apartment\n\n");
+
 }
 
 

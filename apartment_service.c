@@ -24,6 +24,8 @@ void swap(int* a, int* b);
 
 int indexOfMax(int* a, int m);
 
+ApartmentServiceResult removeApartment(ApartmentService service, int index);
+
 ApartmentService serviceCreate(int maxNumOfApartments)
 {
 	if(maxNumOfApartments <= 0)
@@ -45,7 +47,7 @@ ApartmentService serviceCreate(int maxNumOfApartments)
 ApartmentServiceResult serviceAddApartment(ApartmentService service,
 			Apartment apartment, int id)
 {
-	if(apartment == NULL)
+	if(apartment == NULL || service == NULL)
 		return APARTMENT_SERVICE_NULL_ARG;
 	if(id < 0)
 		return APARTMENT_SERVICE_OUT_OF_BOUNDS;
@@ -54,7 +56,9 @@ ApartmentServiceResult serviceAddApartment(ApartmentService service,
 	for(int i=0; i<service->numOfApartments; i++)
 	{
 		if(service->ids[i] == id)
+		{
 			return APARTMENT_SERVICE_ALREADY_EXISTS;
+		}
 	}
 
 	service->apartments[service->numOfApartments] = apartmentCopy(apartment);
@@ -81,7 +85,7 @@ ApartmentServiceResult servicePriceMedian(ApartmentService service, int* outResu
 	{
 		prices[i] = apartmentGetPrice(service->apartments[i]);
 	}
-	quickSort(prices, 0, length-1);
+	maxSort(prices, length);
 	if(length%2 == 0)
 		*outResult = (prices[length/2]+prices[length/2-1])/2;
 	else *outResult = prices[length/2];
@@ -152,6 +156,45 @@ ApartmentServiceResult serviceGetById(ApartmentService service, int id, Apartmen
 	return APARTMENT_SERVICE_NO_FIT;
 }
 
+ApartmentServiceResult removeApartment(ApartmentService service, int index)
+{
+	if(service == NULL)
+		return APARTMENT_SERVICE_NULL_ARG;
+	if(service->apartments == NULL || service->numOfApartments == 0)
+		return APARTMENT_SERVICE_EMPTY;
+	if(index < 0 || index > service->numOfApartments)
+		return APARTMENT_SERVICE_NO_FIT;
+	service->numOfApartments--;
+	apartmentDestroy(&(service->apartments[index]));	// this might work, not sure yet
+	for(int i=index; i<service->maxNumOfApartments-1; i++)
+	{
+		service->apartments[i] = service->apartments[i+1];
+	}
+	service->apartments[service->maxNumOfApartments-1] = NULL;
+	return APARTMENT_SUCCESS;
+}
+
+ApartmentServiceResult serviceDeleteApartment(ApartmentService service, Apartment apartment)
+{
+	if(service == NULL)
+		return APARTMENT_SERVICE_NULL_ARG;
+	if(service->apartments == NULL || service->numOfApartments == 0)
+			return APARTMENT_SERVICE_EMPTY;
+	int index = -1;
+	for(int i = service->numOfApartments-1; i >= 0; i--)
+	{
+		if(apartmentIsIdentical(service->apartments[i], apartment))
+		{
+			index = i;
+			break;
+		}
+	}
+	if( index == -1)
+		return APARTMENT_SERVICE_NO_FIT;
+	removeApartment(service, index);
+	return APARTMENT_SUCCESS;
+}
+
 ApartmentServiceResult serviceDeleteById(ApartmentService service, int id)
 {	// freeing might be needed
 	if (service == NULL)
@@ -171,13 +214,7 @@ ApartmentServiceResult serviceDeleteById(ApartmentService service, int id)
 	}
 	if(index == -1)
 		return APARTMENT_SERVICE_NO_FIT;
-	service->numOfApartments--;
-	apartmentDestroy(&(service->apartments[index]));	// this might work, not sure yet
-	for(int i=index; i<service->maxNumOfApartments-1; i++)
-	{
-		service->apartments[i] = service->apartments[i+1];
-	}
-	service->apartments[service->maxNumOfApartments-1] = NULL;
+	removeApartment(service, index);
 	return APARTMENT_SUCCESS;
 }
 
@@ -205,39 +242,10 @@ void serviceDestroy(ApartmentService service)
 	for(int i=0; i<service->numOfApartments; i++)
 	{
 		apartmentDestroy(service->apartments[i]);
-		free(service->apartments[i]); 	// might be unnecessary, but won't hurt
+		//free(service->apartments[i]); 	// this causes problems here, as well as apartmentDestroy, but I think that atleast one is necessary
 	}
 	free(service->apartments);
 	//free(service);
-}
-
-void quickSort( int* a, int l, int r)
-{
-	int j;
-
-	if( l < r )
-	{
-		j = partition( a, l, r);
-		quickSort( a, l, j-1);
-		quickSort( a, j+1, r);
-	}
-
-}
-
-int partition( int* a, int l, int r) {
-	int pivot, i, j, t;
-	pivot = a[l];
-	i = l; j = r+1;
-
-	while( 1)
-	{
-		do ++i; while( a[i] <= pivot && i <= r );
-		do --j; while( a[j] > pivot );
-		if( i >= j ) break;
-		t = a[i]; a[i] = a[j]; a[j] = t;
-	}
-	t = a[l]; a[l] = a[j]; a[j] = t;
-	return j;
 }
 
 /* Helper function: finds the index of maximal element */
@@ -265,3 +273,16 @@ void swap(int* a, int* b)
 	*b = temp;
 }
 
+
+void servicePrint(ApartmentService service)
+{
+	if(service == NULL || service->apartments == NULL || service->numOfApartments <= 0)
+		return;
+	printf("max apartments: %d\ncurrent apartments: %d\n", service->maxNumOfApartments, service->numOfApartments);
+	for(int i=0; i<service->numOfApartments; i++)
+	{
+		printf("apartment at id %d is:\n", service->ids[i]);
+		apartmentPrint(service->apartments[i]);
+	}
+	printf("Done printing apartments ------------------\n");
+}

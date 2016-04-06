@@ -39,16 +39,16 @@ bool apartment_combo_test() {
 	ApartmentService service = serviceCreate(2);
 
 	printf("predestroying\n");
-	print(apartment);
-	print(copy);
+	apartmentPrint(apartment);
+	apartmentPrint(copy);
 
 	//apartmentDestroy(apartment);
 	//apartmentDestroy(apartment);
 	apartmentDestroy(copy);
 
 	printf("postdestroying\n");
-	print(apartment);
-	print(copy);
+	apartmentPrint(apartment);
+	apartmentPrint(copy);
 
 	return final;
 }
