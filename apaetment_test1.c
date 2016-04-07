@@ -3,6 +3,32 @@
 
 #include <stdlib.h>
 
+void apartmentPrint(Apartment apartment)
+{
+	if(apartment == NULL || apartment->length <= 0 || apartment->width <= 0 || apartment->price < 0 || apartment->squares == NULL)
+	{
+		return;
+	}
+	printf("length: %d, width: %d, price: %d\n", apartment->length, apartment->width, apartment->price);
+	for(int i=0; i<apartment->length; i++)
+	{
+		//printf("okay now in the loop \n");	// wtf it fails right in the if, why??????
+		if(apartment == NULL || apartment->squares == NULL || apartment->squares[i] == NULL)
+		{
+			printf("NULLLLLLLLLLLLLLLLLLLLLLL %d\n", i);
+			return;
+		}
+		for(int j=0; j<apartment->width; j++)
+		{
+			if(apartment->squares[i][j]==WALL)
+				printf("# ");
+			else printf("O ");
+		}
+		printf("\n");
+	}
+	printf("and that's it for that apartment\n\n");
+}
+
 bool apartment_combo_test1() {
 	bool final = true;
 
@@ -67,6 +93,7 @@ bool test()
 	TEST_EQUALS(final, APARTMENT_SUCCESS, apartmentIsSameRoom(ap, 0, 0, 4, 2, &result));
 	final = final&&!result;
 
+	//Why? apartmentTotalArea is supposed to assert.
 	TEST_EQUALS(final,-1,apartmentTotalArea(NULL));
 	TEST_EQUALS(final,7,apartmentTotalArea(ap));
 
@@ -87,7 +114,7 @@ bool test()
 	TEST_EQUALS(final,APARTMENT_OUT_OF_BOUNDS,apartmentSplit(ap,true,10,&ap1,&ap2));
 	TEST_EQUALS(final,APARTMENT_SUCCESS,apartmentSplit(ap,true,2,&ap1,&ap2));
 	TEST_EQUALS(final,APARTMENT_SUCCESS,apartmentSplit(ap1,false,1,&ap3,&ap4));
-
+	//Why? apartmentNumOfRooms is supposed to assert.
 	TEST_EQUALS(final,-1,apartmentNumOfRooms(NULL));
 	TEST_EQUALS(final,2,apartmentNumOfRooms(ap2));
 
@@ -95,7 +122,7 @@ bool test()
 
 	TEST_EQUALS(final,APARTMENT_NULL_ARG,apartmentGetSquare(NULL,0,0,&result2));
 	TEST_EQUALS(final,APARTMENT_OUT_OF_BOUNDS,apartmentGetSquare(ap2,5,0,&result2));
-	TEST_EQUALS(final,APARTMENT_OUT_OF_BOUNDS,apartmentGetSquare(ap2,-1,0,&result2));
+	TEST_EQUALS(final,APARTMENT_OUT_OF_BOUNDS,apartmentGetSquare(ap2,-1,0,&result2)); //Not sure that necessary
 	TEST_EQUALS(final,APARTMENT_SUCCESS,apartmentGetSquare(ap2,0,0,&result2));
 	TEST_EQUALS(final,EMPTY,result2);
 	TEST_EQUALS(final,APARTMENT_SUCCESS,apartmentGetSquare(ap2,0,1,&result2));
@@ -126,8 +153,11 @@ bool test()
 	TEST_EQUALS(final,true,apartmentIsIdentical(NULL,NULL));
 	TEST_EQUALS(final,false,apartmentIsIdentical(ap2,NULL));
 	TEST_EQUALS(final,false,apartmentIsIdentical(ap2,ap3));
-	TEST_EQUALS(final,true,apartmentIsIdentical(ap3,ap4));
-
+	apartmentChangePrice(ap4, 100);
+	apartmentPrint(ap3);
+	apartmentPrint(ap4);
+	TEST_EQUALS(final,true,apartmentIsIdentical(ap3,ap4));	// fails - price is different because
+						// apartments were set up differently
 
 	TEST_EQUALS(final,NULL,apartmentCopy(NULL));
 	Apartment ap5 = apartmentCopy(ap2);
@@ -135,11 +165,13 @@ bool test()
 
 	apartmentDestroy(ap);
 
+	/*
 	if(ap->price == -1)
 		printf("ok");
 	else
 		printf("no");
 	//apartmentDestroy(ap);
+	*/
 
 	apartmentDestroy(ap1);
 	apartmentDestroy(ap2);
@@ -156,6 +188,8 @@ bool test()
 
 
 int main() {
+	//setvbuf(stdout, NULL, _IONBF, 0);	// strangely enough, these 2 lines need to be included for
+	//setvbuf(stderr, NULL, _IONBF, 0);	// the code not to crash
 	RUN_TEST(apartment_combo_test1);
 	RUN_TEST(test);
 	return true;

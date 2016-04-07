@@ -21,6 +21,8 @@ void swap(int* a, int* b);
 
 int indexOfMax(int* a, int m);
 
+static void apartmentPrint(Apartment apartment);
+
 ApartmentServiceResult removeApartment(ApartmentService service, int index);
 
 ApartmentService serviceCreate(int maxNumOfApartments)
@@ -60,8 +62,6 @@ ApartmentServiceResult serviceAddApartment(ApartmentService service,
 
 
 	service->apartments[service->numOfApartments] = apartmentCopy(apartment);
-	//int oPrice = apartment->price, oLength = apartment->length, oWidth = apartment->width;
-	//int cPrice = service->apartments[service->numOfApartments]->price, cLength = service->apartments[service->numOfApartments]->length, cWidth = service->apartments[service->numOfApartments]->width;
 	service->ids[service->numOfApartments] = id;
 	(service->numOfApartments)++;
 	return APARTMENT_SERVICE_SUCCESS;
@@ -139,7 +139,8 @@ ApartmentServiceResult serviceSearch(ApartmentService service, int area,
 	return APARTMENT_SERVICE_SUCCESS;
 }
 
-ApartmentServiceResult serviceGetById(ApartmentService service, int id, Apartment* outApartment)
+ApartmentServiceResult serviceGetById(ApartmentService service, int id,
+		Apartment* outApartment)
 {
 	if (service == NULL)
 		return APARTMENT_SERVICE_NULL_ARG;
@@ -151,7 +152,7 @@ ApartmentServiceResult serviceGetById(ApartmentService service, int id, Apartmen
 	{
 		if(service->ids[i] == id)
 		{
-			outApartment = apartmentCopy(service->apartments[i]);
+			*outApartment = apartmentCopy(service->apartments[i]);
 			return APARTMENT_SERVICE_SUCCESS;
 		}
 	}
@@ -244,10 +245,9 @@ void serviceDestroy(ApartmentService service)
 	for(int i=0; i<service->numOfApartments; i++)
 	{
 		apartmentDestroy(service->apartments[i]);
-		//free(service->apartments[i]); 	// this causes problems here, as well as apartmentDestroy, but I think that atleast one is necessary
 	}
 	free(service->apartments);
-	//free(service);
+	free(service);
 }
 
 /* Helper function: finds the index of maximal element */
@@ -286,5 +286,27 @@ void servicePrint(ApartmentService service)
 		printf("apartment at id %d is:\n", service->ids[i]);
 		apartmentPrint(service->apartments[i]);
 	}
-	printf("Done printing apartments ------------------\n");
+}
+
+static void apartmentPrint(Apartment apartment)
+{
+	if(apartment == NULL || apartment->length <= 0 || apartment->width <= 0 || apartment->price < 0 || apartment->squares == NULL)
+	{
+		return;
+	}
+	printf("length: %d, width: %d, price: %d\n", apartment->length, apartment->width, apartment->price);
+	for(int i=0; i<apartment->length; i++)
+	{
+		if(apartment == NULL || apartment->squares == NULL || apartment->squares[i] == NULL)
+		{
+			return;
+		}
+		for(int j=0; j<apartment->width; j++)
+		{
+			if(apartment->squares[i][j]==WALL)
+				printf("# ");
+			else printf("O ");
+		}
+		printf("\n");
+	}
 }
