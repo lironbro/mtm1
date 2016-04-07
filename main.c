@@ -28,7 +28,6 @@ int main()
 	print(apartment);
 
 
-	/*
 	setvbuf(stdout, NULL, _IONBF, 0);
 	setvbuf(stderr, NULL, _IONBF, 0);
 
