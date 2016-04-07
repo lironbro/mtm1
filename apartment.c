@@ -23,9 +23,7 @@
 
 // helpful functions - implemented at the end of the file
 
-bool checkPath(Apartment apartment, int currentRow, int currentCol, int destinationRow, int destinationCol);
-
-//void print(Apartment apartment);
+static bool checkPath(Apartment apartment, int currentRow, int currentCol, int destinationRow, int destinationCol);
 
 
 
@@ -104,8 +102,7 @@ ApartmentResult apartmentIsSameRoom(Apartment apartment, int row1, int col1, int
 		return APARTMENT_NULL_ARG;
 	if(row1 >= apartment->length || col1 >= apartment->width
 			|| row2 >= apartment->length || col2 >= apartment->width
-			|| row1 < 0 || col1 < 0 || row2 < 0 || col2 < 0
-			|| apartment->squares[row1][col1] == WALL || apartment->squares[row2][col2] == WALL)
+			|| row1 < 0 || col1 < 0 || row2 < 0 || col2 < 0)
 	{
 		*outResult = false;
 		return APARTMENT_OUT_OF_BOUNDS;
@@ -122,6 +119,8 @@ ApartmentResult apartmentIsSameRoom(Apartment apartment, int row1, int col1, int
 // works
 int apartmentTotalArea(Apartment apartment)
 {
+	if(apartment==NULL)
+		return -1;
 	int empties = 0;
 	for(int i=0; i<apartment->length; i++)
 		for(int j=0; j<apartment->width; j++)
@@ -251,6 +250,8 @@ ApartmentResult splitAux(Apartment *apartment, Apartment** first,
 // works
 int apartmentNumOfRooms(Apartment apartment)
 {
+	if(apartment==NULL)
+		return -1;
 	int roomCount = 0;
 	for(int i=0; i<apartment->length; i++)
 	{
@@ -291,7 +292,8 @@ ApartmentResult apartmentGetSquare(Apartment apartment, int row, int col, Square
 {
     if(apartment == NULL || apartment->squares == NULL)
         return APARTMENT_NULL_ARG;
-	if(row >= apartment->width || col >= apartment->length)
+	if(row >= apartment->width || col >= apartment->length
+			|| row<0 || col<0) //Not sure that necessary
         return APARTMENT_OUT_OF_BOUNDS;
     *OutValue = apartment->squares[row][col];
     return APARTMENT_SUCCESS;
@@ -354,7 +356,7 @@ bool apartmentIsIdentical(Apartment apartment1, Apartment apartment2)
 // helpful functions implementation
 
 // works
-bool checkPath(Apartment apartment, int currentRow, int currentCol, int destinationRow, int destinationCol)
+static bool checkPath(Apartment apartment, int currentRow, int currentCol, int destinationRow, int destinationCol)
 {
 	if(currentRow == destinationRow && currentCol == destinationCol)
 		return true;
@@ -384,8 +386,9 @@ bool checkPath(Apartment apartment, int currentRow, int currentCol, int destinat
 	return r1 || r2 || r3 || r4;
 }
 
-// works, might crash if the apartment isn't initialized well
-void apartmentPrint(Apartment apartment)
+// works, might crash if the apartment isn't initialized well.
+// helper functions can only be declared as static
+/*static void apartmentPrint(Apartment apartment)
 {
 	if(apartment == NULL || apartment->length <= 0 || apartment->width <= 0 || apartment->price < 0 || apartment->squares == NULL)
 	{
@@ -409,9 +412,8 @@ void apartmentPrint(Apartment apartment)
 		printf("\n");
 	}
 	printf("and that's it for that apartment\n\n");
-
 }
-
+*/
 
 
 
