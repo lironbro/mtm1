@@ -62,6 +62,8 @@ ApartmentServiceResult serviceAddApartment(ApartmentService service,
 
 
 	service->apartments[service->numOfApartments] = apartmentCopy(apartment);
+	//int oPrice = apartment->price, oLength = apartment->length, oWidth = apartment->width;
+	//int cPrice = service->apartments[service->numOfApartments]->price, cLength = service->apartments[service->numOfApartments]->length, cWidth = service->apartments[service->numOfApartments]->width;
 	service->ids[service->numOfApartments] = id;
 	(service->numOfApartments)++;
 	return APARTMENT_SERVICE_SUCCESS;

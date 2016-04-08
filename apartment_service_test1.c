@@ -139,7 +139,7 @@ bool Test()
 	free(squares);
 	return final;
 }
-int maijn() {
+int maj2n() {
 	setvbuf(stdout, NULL, _IONBF, 0);	// strangely enough, these 2 lines need to be included for
 	setvbuf(stderr, NULL, _IONBF, 0);	// the code not to crash
 	RUN_TEST(service_test_combo1);

@@ -56,8 +56,18 @@ Apartment apartmentCreate(SquareType** squares, int length, int width, int price
 	}
 	return apartment;
 }
+// necessary?
+void destroySquares(SquareType*** sq,int length,int width)
+{
+	for(int i=0;i<length;i++)
+	{
+		free((*sq)[i]);
+	}
+	free(*sq);
+	return;
+}
 
-//does not work
+// works
 void apartmentDestroy(Apartment apartment)
 {
 	if(apartment == NULL || apartment->length <= 0 || apartment->width <= 0 || apartment->squares == NULL)
@@ -87,7 +97,7 @@ Apartment apartmentCopy(Apartment apartment)
 // works
 ApartmentResult apartmentIsSameRoom(Apartment apartment, int row1, int col1, int row2, int col2, bool* outResult)
 {
-	if(apartment == NULL)
+	if(apartment == NULL || outResult == NULL)
 		return APARTMENT_NULL_ARG;
 	if(row1 >= apartment->length || col1 >= apartment->width
 			|| row2 >= apartment->length || col2 >= apartment->width
@@ -141,7 +151,7 @@ ApartmentResult apartmentRoomArea(Apartment apartment, int row, int col, int* ou
 	return APARTMENT_SUCCESS;
 }
 
-// works but very long
+// not sure if works
 ApartmentResult apartmentSplit(Apartment apartment, bool splitByRow,
                                 int index, Apartment* first, Apartment* second)
 {
@@ -170,7 +180,7 @@ ApartmentResult apartmentSplit(Apartment apartment, bool splitByRow,
     		if(apartment->squares[i][index] == EMPTY)
     			return APARTMENT_BAD_SPLIT;
     	int price1 = (apartment->price)*(index+1)/(apartment->width);
-    	int price2 = (apartment->price)*(apartment->width-index-1)/(apartment->width);
+    	int price2 = (apartment->price)*(apartment->width-index)/(apartment->width);
 
     	SquareType** squares = malloc(apartment->length*sizeof(SquareType*));
     	if(squares == NULL)		return APARTMENT_OUT_OF_MEM;
@@ -294,7 +304,7 @@ ApartmentResult apartmentChangePrice(Apartment apartment, int percent)
 // works
 int apartmentGetPrice(Apartment apartment)
 {
-	if(apartment == NULL)
+	if(apartment==NULL)
 		return -1;
 	return apartment->price;
 }
@@ -302,7 +312,7 @@ int apartmentGetPrice(Apartment apartment)
 // works
 int apartmentGetLength(Apartment apartment)
 {
-	if(apartment == NULL)
+	if(apartment==NULL)
 			return -1;
 	return apartment->length;
 }
@@ -310,7 +320,7 @@ int apartmentGetLength(Apartment apartment)
 // works
 int apartmentGetWidth(Apartment apartment)
 {
-	if(apartment == NULL)
+	if(apartment==NULL)
 			return -1;
 	return apartment->width;
 }
