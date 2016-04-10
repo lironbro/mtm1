@@ -12,7 +12,7 @@
 #include "apartment.h"
 #include "apartment_service.h"
 
-#define CHECK_POSITIVE(a, b, c) ((a>0) && (b>0) && (c>=0))
+#define NOT_NEGATIVE(a, b, c) ((a>=0) && (b>=0) && (c>=0))
 
 
 void maxSort(int* a, int n);
@@ -20,6 +20,8 @@ void maxSort(int* a, int n);
 void swap(int* a, int* b);
 
 int indexOfMax(int* a, int m);
+
+static void apartmentPrint(Apartment apartment);
 
 ApartmentServiceResult removeApartment(ApartmentService service, int index);
 
@@ -60,8 +62,6 @@ ApartmentServiceResult serviceAddApartment(ApartmentService service,
 
 
 	service->apartments[service->numOfApartments] = apartmentCopy(apartment);
-	//int oPrice = apartment->price, oLength = apartment->length, oWidth = apartment->width;
-	//int cPrice = service->apartments[service->numOfApartments]->price, cLength = service->apartments[service->numOfApartments]->length, cWidth = service->apartments[service->numOfApartments]->width;
 	service->ids[service->numOfApartments] = id;
 	(service->numOfApartments)++;
 	return APARTMENT_SERVICE_SUCCESS;
@@ -69,7 +69,8 @@ ApartmentServiceResult serviceAddApartment(ApartmentService service,
 
 int serviceNumberOfApatments(ApartmentService service)
 {
-	if(service==NULL)
+	//assert(service!=NULL);
+	if(service == NULL)
 		return -1;
 	return service->numOfApartments;
 }
@@ -82,6 +83,8 @@ ApartmentServiceResult servicePriceMedian(ApartmentService service, int* outResu
 	    return APARTMENT_SERVICE_EMPTY;
 	int length = service->numOfApartments;
 	int* prices = malloc(length*sizeof(int));
+	if(prices == NULL)
+		return APARTMENT_SERVICE_OUT_OF_MEM;
 	for(int i=0; i<length; i++)
 	{
 		prices[i] = apartmentGetPrice(service->apartments[i]);
@@ -103,6 +106,8 @@ ApartmentServiceResult serviceAreaMedian(ApartmentService service,
         return APARTMENT_SERVICE_EMPTY;
     int length = service->numOfApartments;
     int* area = malloc(length*sizeof(int));
+    if(area==NULL)
+    	return APARTMENT_OUT_OF_MEM;
     for(int i=0; i<length; i++)
         area[i] = apartmentTotalArea(service->apartments[i]);
     maxSort(area, length);
@@ -119,27 +124,29 @@ ApartmentServiceResult serviceSearch(ApartmentService service, int area,
 	if(service == NULL)
 		return APARTMENT_SERVICE_NULL_ARG;
 	int lastLocation=-1, currPrice;
-	if(!CHECK_POSITIVE(area, rooms, price))
+	if(!NOT_NEGATIVE(area, rooms, price))
 		return APARTMENT_SERVICE_OUT_OF_BOUNDS;
-	if((service->numOfApartments)<=0)
+	if(service->numOfApartments <= 0)
 		return APARTMENT_SERVICE_EMPTY;
-	int length = service->numOfApartments;
-	for(int i=0; i<length; i++) {
+	for(int i=service->numOfApartments-1; i >= 0; i--)
+	{
 		int currArea = apartmentTotalArea(service->apartments[i]);
 		int currRooms = apartmentNumOfRooms(service->apartments[i]);
 		currPrice = apartmentGetPrice(service->apartments[i]);
-		if(currArea>=area && currRooms>=rooms && currPrice<=price)
-			lastLocation=i;
+		if(currArea >= area && currRooms >= rooms && currPrice <= price)
+		{
+			lastLocation = i;
+			break;
+		}
 	}
-	if(lastLocation==-1)
+	if(lastLocation == -1)
 		return APARTMENT_SERVICE_NO_FIT;
-	*outApartment = apartmentCreate(service->apartments[lastLocation]->squares,
-		apartmentGetLength(service->apartments[lastLocation]),
-		apartmentGetWidth(service->apartments[lastLocation]), currPrice);
+	*outApartment = apartmentCopy(service->apartments[lastLocation]);
 	return APARTMENT_SERVICE_SUCCESS;
 }
 
-ApartmentServiceResult serviceGetById(ApartmentService service, int id, Apartment* outApartment)
+ApartmentServiceResult serviceGetById(ApartmentService service, int id,
+		Apartment* outApartment)
 {
 	if (service == NULL)
 		return APARTMENT_SERVICE_NULL_ARG;
@@ -151,7 +158,7 @@ ApartmentServiceResult serviceGetById(ApartmentService service, int id, Apartmen
 	{
 		if(service->ids[i] == id)
 		{
-			outApartment = apartmentCopy(service->apartments[i]);
+			*outApartment = apartmentCopy(service->apartments[i]);
 			return APARTMENT_SERVICE_SUCCESS;
 		}
 	}
@@ -167,18 +174,20 @@ ApartmentServiceResult removeApartment(ApartmentService service, int index)
 	if(index < 0 || index > service->numOfApartments)
 		return APARTMENT_SERVICE_NO_FIT;
 	service->numOfApartments--;
-	apartmentDestroy(service->apartments[index]);	// this might work, not sure yet
+	apartmentDestroy(service->apartments[index]);
 	for(int i=index; i<service->maxNumOfApartments-1; i++)
 	{
 		service->apartments[i] = service->apartments[i+1];
+		service->ids[i] = service->ids[i+1];
 	}
 	service->apartments[service->maxNumOfApartments-1] = NULL;
+	service->ids[service->maxNumOfApartments-1] = -1;
 	return APARTMENT_SUCCESS;
 }
 
 ApartmentServiceResult serviceDeleteApartment(ApartmentService service, Apartment apartment)
 {
-	if(service == NULL||apartment == NULL)
+	if(service == NULL || apartment == NULL)
 		return APARTMENT_SERVICE_NULL_ARG;
 	if(service->apartments == NULL || service->numOfApartments == 0)
 			return APARTMENT_SERVICE_EMPTY;
@@ -244,10 +253,9 @@ void serviceDestroy(ApartmentService service)
 	for(int i=0; i<service->numOfApartments; i++)
 	{
 		apartmentDestroy(service->apartments[i]);
-		//free(service->apartments[i]); 	// this causes problems here, as well as apartmentDestroy, but I think that atleast one is necessary
 	}
 	free(service->apartments);
-	//free(service);
+	free(service);
 }
 
 /* Helper function: finds the index of maximal element */
@@ -286,5 +294,27 @@ void servicePrint(ApartmentService service)
 		printf("apartment at id %d is:\n", service->ids[i]);
 		apartmentPrint(service->apartments[i]);
 	}
-	printf("Done printing apartments ------------------\n");
+}
+
+static void apartmentPrint(Apartment apartment)
+{
+	if(apartment == NULL || apartment->length <= 0 || apartment->width <= 0 || apartment->price < 0 || apartment->squares == NULL)
+	{
+		return;
+	}
+	printf("length: %d, width: %d, price: %d\n", apartment->length, apartment->width, apartment->price);
+	for(int i=0; i<apartment->length; i++)
+	{
+		if(apartment == NULL || apartment->squares == NULL || apartment->squares[i] == NULL)
+		{
+			return;
+		}
+		for(int j=0; j<apartment->width; j++)
+		{
+			if(apartment->squares[i][j]==WALL)
+				printf("# ");
+			else printf("O ");
+		}
+		printf("\n");
+	}
 }
